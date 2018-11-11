@@ -2,6 +2,11 @@ const Tuling123 = require("./robot/tuling123");
 const TULING123_API_KEY = '8ace61c729e7475190a14f4ed7679d7e';
 const tuling = new Tuling123(TULING123_API_KEY);
 
+const {
+    Wechaty,
+    Message,
+} = require('wechaty');
+
 async function onMessage(userKey,msg) {
     console.log(` ${userKey} Message: ${msg}`);
 
