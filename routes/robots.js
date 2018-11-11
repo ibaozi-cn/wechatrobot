@@ -11,7 +11,8 @@ const Data = require('../src/data');
 
 
 router.get('/test', function (req, res, next) {
-    console.log(req.query)
+    console.log(req.query);
+    res.send('test');
 });
 
 router.get('/getScan', function (req, res, next) {
