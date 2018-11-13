@@ -3,8 +3,11 @@ const qrTerm = require("qrcode-terminal");
 const Tuling123 = require("./tuling123");
 
 const {
+    config,
+    log,
     Wechaty,
     Message,
+    Friendship
 } = require('wechaty');
 
 
@@ -40,8 +43,6 @@ bot.on('logout', onLogout);
 bot.on('message', onMessage);
 bot.on('error', onError);
 bot.on('friendship', onFriend);
-
-
 
 
 bot.start()
