@@ -71,13 +71,16 @@ async function onMessage(msg) {
 
     console.log(`Message: ${msg}`);
 
-    // Skip message from self, or inside a room
+    if (msg.self() || msg.room()) {
+        return;
+    }
+
     if (msg.type() !== Message.Type.Text) {
         await msg.say("目前只支持文本信息哦，很快就支持语音聊天了呢，敬请期待吧。");
         return;
     }
 
-    if (msg.self() || msg.room() || msg.from().name() === '微信团队' || msg.text() === 'Ai小哆') {
+    if (msg.from().name() === '微信团队' || msg.text() === 'Ai小哆') {
         return;
     }
 
