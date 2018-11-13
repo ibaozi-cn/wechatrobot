@@ -13,25 +13,18 @@ async function onMessage(userKey, msg) {
 
     // Skip message from self, or inside a room
 
+    if (msg.self() || msg.room() || msg.from().name() === '微信团队' || msg.text() === 'Ai小哆' || msg.type() !== Message.Type.Text) {
+        return;
+    }
+
     let text = msg.text();
 
-    if (msg.type() !== Message.Type.Text) {
-        await msg.say("目前小哆只回复文本信息哦，很快就学会语音识别了呢");
-        return;
-    }
-
-    if (text === "招募" || text === "合伙人" || text === "缺合伙人吗" || text === "需要合伙人吗") {
-        await msg.say("加入我们，请联系我的创始人：校长，微信：zhanyong0425");
-        return;
-    }
-
-    if (msg.self() || msg.room() || msg.from().name() === '微信团队' || text === 'Ai小哆') {
-        return;
-    }
+    console.log("msg text " + text);
 
     try {
-        const {text: reply} = await tuling.ask(text, {userid: msg.from()});
-        await msg.say(reply)
+        const {text: reply, url: url} = await tuling.ask(msg.text(), {userid: msg.from()});
+        await msg.say(reply);
+        await msg.say(url)
     } catch (e) {
         console.error('Bot', 'on message tuling.ask() exception: %s', e && e.message || e)
     }

@@ -72,20 +72,40 @@ async function onMessage(msg) {
     console.log(`Message: ${msg}`);
 
     // Skip message from self, or inside a room
-    if (msg.self() || msg.room() || msg.from().name() === '微信团队' || msg.type() !== Message.Type.Text) return;
+    if (msg.type() !== Message.Type.Text) {
+        await msg.say("目前只支持文本信息哦，很快就支持语音聊天了呢，敬请期待吧。");
+        return;
+    }
 
-    // console.log(msg.text());
+    if (msg.self() || msg.room() || msg.from().name() === '微信团队' || msg.text() === 'Ai小哆') {
+        return;
+    }
+
+    let text = msg.text();
+
+    if (text === "招募合伙人吗" || text === "能投资吗" || text === "需要合伙人吗") {
+        await msg.say("想合作请联系我们的创始人：i校长 微信号：zhanyong0425");
+        return;
+    }
+    console.log("msg text " + text);
 
     try {
-        const {text: reply} = await tuling.ask(msg.text(), {userid: msg.from()});
-        // console.log('校长', `reply:"%s" for "%s" `,
-        //     reply,
-        //     msg.text(),
-        // );
-        await msg.say(reply)
+        const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
+        await msg.say(reply);
+        if (url) {
+            await msg.say(url);
+        }
+        if (listNews) {
+            let news = msg;
+            listNews.forEach(async function (item, index) {
+                if (index > 3) return;
+                await news.say(item.article + "\n" + item.detailurl);
+            })
+        }
     } catch (e) {
         console.error('Bot', 'on message tuling.ask() exception: %s', e && e.message || e)
     }
+
 }
 
 async function onFriend(friendship) {
