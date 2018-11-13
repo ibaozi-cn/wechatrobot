@@ -1,4 +1,4 @@
-(function() {
+(function () {
     var Robot, axios;
 
     axios = require('axios');
@@ -20,7 +20,8 @@
             options.info = info;
             return axios.get(this.api, {
                 params: options
-            }).then(function(res) {
+            }).then(function (res) {
+                console.log("tuling123:response===================" + JSON.stringify(res));
                 return res.data;
             });
         }

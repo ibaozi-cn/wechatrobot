@@ -33,7 +33,10 @@ console.log(welcome);
  *
  */
 const TULING123_API_KEY = '8ace61c729e7475190a14f4ed7679d7e';
+const TULING123_API_KEY_2 = '0c5ce9bb0c4e4f43ae0fad21f88c38ba';
+
 const tuling = new Tuling123(TULING123_API_KEY);
+const tuling_2 = new Tuling123(TULING123_API_KEY_2);
 
 const bot = new Wechaty();
 
@@ -65,12 +68,13 @@ function onError(e) {
 }
 
 async function onMessage(msg) {
+
     console.log(`Message: ${msg}`);
 
     // Skip message from self, or inside a room
-    if (msg.self() || msg.room() || msg.from().name() === '微信团队' || msg.from().name() === "Friend recommendation message" || msg.type() !== Message.Type.Text) return;
+    if (msg.self() || msg.room() || msg.from().name() === '微信团队' || msg.type() !== Message.Type.Text) return;
 
-    console.log(msg.text());
+    // console.log(msg.text());
 
     try {
         const {text: reply} = await tuling.ask(msg.text(), {userid: msg.from()});
