@@ -119,6 +119,7 @@ async function onFriend(friendship) {
                     console.log('after accept')
 
                 } else {
+                    await friendship.contact().say('口令不对哦，请输入Ai小哆');
                     logMsg = 'not auto accepted, because verify message is: ' + friendship.hello()
                 }
                 break;
