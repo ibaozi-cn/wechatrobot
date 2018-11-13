@@ -130,7 +130,7 @@ async function onFriend(friendship) {
              */
             case Friendship.Type.Receive:
                 if (friendship.hello() === 'Ai小哆') {
-                    logMsg = 'accepted automatically because verify messsage is "ding"';
+                    logMsg = 'accepted automatically because verify messsage is "Ai小哆"';
                     console.log('before accept');
                     await friendship.accept();
 
