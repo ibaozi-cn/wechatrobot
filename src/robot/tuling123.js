@@ -21,7 +21,7 @@
             return axios.get(this.api, {
                 params: options
             }).then(function (res) {
-                console.log("tuling123:response===================" + JSON.stringify(res));
+                console.log("tuling123:response===================" + res);
                 return res.data;
             });
         }

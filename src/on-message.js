@@ -30,7 +30,7 @@ async function onMessage(userKey, msg) {
     }
 
     try {
-        const {text: reply} = await tuling.ask(msg.text(), {userid: msg.from()});
+        const {text: reply} = await tuling.ask(text, {userid: msg.from()});
         await msg.say(reply)
     } catch (e) {
         console.error('Bot', 'on message tuling.ask() exception: %s', e && e.message || e)
