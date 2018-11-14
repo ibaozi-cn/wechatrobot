@@ -45,7 +45,7 @@ bot.on('login', onLogin);
 bot.on('logout', onLogout);
 bot.on('message', onMessage);
 bot.on('error', onError);
-// bot.on('friendship', onFriend);
+bot.on('friendship', onFriend);
 
 
 bot.start()
@@ -135,14 +135,13 @@ async function onFriend(friendship) {
                     await friendship.accept();
 
                     // if want to send msg , you need to delay sometimes
-                    await new Promise(r => setTimeout(r, 1000));
+                    await new Promise(r => setTimeout(r, 1000*5));
                     await friendship.contact().say('您好，我叫Ai小哆，有什么可以帮助您的');
                     await friendship.contact().say('我可以帮您，查天气，查地理，查快递，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，总之您有什么需求尽管提，我也在不断学习哦。么么哒 [亲亲]');
 
                     console.log('after accept')
 
                 } else {
-                    await friendship.contact().say('口令不对哦，请输入Ai小哆');
                     logMsg = 'not auto accepted, because verify message is: ' + friendship.hello()
                 }
                 break;
