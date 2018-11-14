@@ -45,7 +45,7 @@ bot.on('login', onLogin);
 bot.on('logout', onLogout);
 bot.on('message', onMessage);
 bot.on('error', onError);
-bot.on('friendship', onFriend);
+// bot.on('friendship', onFriend);
 
 
 bot.start()
