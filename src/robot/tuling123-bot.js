@@ -46,7 +46,8 @@ bot.on('logout', onLogout);
 bot.on('message', onMessage);
 bot.on('error', onError);
 bot.on('friendship', onFriend);
-
+bot.on('room-join',onRoomJoin);
+// bot.on('room-leave',onRoomLeave);
 
 bot.start()
     .catch(console.error);
@@ -163,3 +164,25 @@ async function onFriend(friendship) {
     await fileHelper.say(logMsg)
 
 }
+
+async function onRoomJoin(room, inviteeList, inviter) {
+    log.info( 'Bot', 'EVENT: room-join - Room "%s" got new member "%s", invited by "%s"',
+        await room.topic(),
+        inviteeList.map(c => c.name()).join(','),
+        inviter.name(),
+    );
+    console.log('bot room-join room id:', room.id);
+
+    const topic = await room.topic();
+    await room.say(`欢迎加入 "${topic}"!`, inviteeList[0])
+}
+
+// async function  onRoomLeave(room, leaverList) {
+//     log.info('Bot', 'EVENT: room-leave - Room "%s" lost member "%s"',
+//         await room.topic(),
+//         leaverList.map(c => c.name()).join(','),
+//     );
+//     const topic = await room.topic();
+//     const name  = leaverList[0] ? leaverList[0].name() : 'no contact!';
+//     await room.say(` "${name}" 被踢出群： "${topic}"!`)
+// }
