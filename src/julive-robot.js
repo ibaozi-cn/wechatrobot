@@ -38,7 +38,7 @@ const TULING123_API_KEY_2 = '0c5ce9bb0c4e4f43ae0fad21f88c38ba';
 const tuling = new Tuling123(TULING123_API_KEY);
 const tuling_2 = new Tuling123(TULING123_API_KEY_2);
 
-const msgGroup2 = "【居理员工group2群规】\n" +
+const msgGroup2 = "【居理员工group群2规2】\n" +
     "格式：城市+部门+姓名，例：集团员满兴汉哥；\n" +
     "注⚠️：\n" +
     "1、【工作号不得入群，仅限私人号】咨询，渠道同事的工作号入群会被清退出群；\n" +
@@ -50,7 +50,19 @@ const msgGroup2 = "【居理员工group2群规】\n" +
     "线上管理者请拉新进的员工：）\n" +
     "已在一群的非管理者可不用在二群，内容都一样，不用占新人名额：）";
 
-const msgGroup1 = "【居理员工group1群规】\n" +
+const msgGroup1 = "【居理员工group群1规2】\n" +
+    "格式：城市+部门+姓名，例：集团员满兴汉哥；\n" +
+    "注⚠️：\n" +
+    "1、【工作号不得入群，仅限私人号】咨询，渠道同事的工作号入群会被清退出群；\n" +
+    "2、已经在一群的成员也不要入二群避免占新人名额；\n" +
+    "3、【离职小伙伴请配合退出】；\n" +
+    "\n" +
+    "⚠️入群24小时内没修改备注的小伙伴将清退出群，请相互通知！！\n" +
+    "\n" +
+    "线上管理者请拉新进的员工：）\n" +
+    "已在一群的非管理者可不用在二群，内容都一样，不用占新人名额：）";
+
+const msgGroup = "【居理员工group群规】\n" +
     "格式：城市+部门+姓名，例：集团员满兴汉哥；\n" +
     "注⚠️：\n" +
     "1、【工作号不得入群，仅限私人号】咨询，渠道同事的工作号入群会被清退出群；\n" +
@@ -97,6 +109,9 @@ async function onMessage(msg) {
 
     console.log(`Message: ${msg}`);
 
+    let text = msg.text();
+    console.log("msg text " + text);
+
     if (msg.self()) {
         return;
     }
@@ -104,8 +119,14 @@ async function onMessage(msg) {
     if (msg.from().name() === '微信团队') {
         return;
     }
+    const room = msg.room();
 
-    if (msg.room()) {
+    if (room) {
+
+        if (text === "发群规") {
+            room.say(msgGroup)
+        }
+
         return;
     }
 
@@ -113,38 +134,66 @@ async function onMessage(msg) {
         await msg.say("目前只支持文本信息哦，很快就支持语音聊天了呢，敬请期待吧。");
         return;
     }
-
-    let text = msg.text();
-
-    if (text === "发送群2规2") {
+    if(text.startsWith("发段子")){
+        const  duanzi = text.substring(3);
+        const room2 = await bot.Room.find("居理测试机器人群2");
+        const room1= await bot.Room.find("居理测试机器人群1");
+        room1.say(duanzi);
+        room2.say(duanzi);
+        return
+    }
+    if(text.startsWith("发群1段子")){
+        const  duanzi = text.substring(5);
+        const room = await bot.Room.find("居理测试机器人群1");
+        room.say(duanzi);
+        return
+    }
+    if(text.startsWith("发群2段子")){
+        const  duanzi = text.substring(5);
+        const room = await bot.Room.find("居理测试机器人群2");
+        room.say(duanzi);
+        return
+    }
+    if (text === "发群2规1") {
         const room = await bot.Room.find("居理测试机器人群2");
         console.log("msg text " + JSON.stringify(room));
-        room.say(msgGroup2)
+        room.say(msgGroup1);
+        return
     }
-    if (text === "发送群1规1") {
+    if (text === "发群1规2") {
         const room = await bot.Room.find("居理测试机器人群1");
         console.log("msg text " + JSON.stringify(room));
-        room.say(msgGroup1)
+        room.say(msgGroup2);
+        return
     }
-    else {
-        console.log("msg text " + text);
 
-        try {
-            const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
-            await msg.say(reply);
-            if (url) {
-                await msg.say(url);
-            }
-            if (listNews) {
-                let news = msg;
-                listNews.forEach(async function (item, index) {
-                    if (index > 3) return;
-                    await news.say(item.article + "\n" + item.detailurl);
-                })
-            }
-        } catch (e) {
-            console.error('Bot', 'on message tuling.ask() exception: %s', e && e.message || e)
+    if (text === "发群2规2") {
+        const room = await bot.Room.find("居理测试机器人群2");
+        console.log("msg text " + JSON.stringify(room));
+        room.say(msgGroup2);
+        return
+    }
+    if (text === "发群1规1") {
+        const room = await bot.Room.find("居理测试机器人群1");
+        console.log("msg text " + JSON.stringify(room));
+        room.say(msgGroup1);
+        return
+    }
+    try {
+        const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
+        await msg.say(reply);
+        if (url) {
+            await msg.say(url);
         }
+        if (listNews) {
+            let news = msg;
+            listNews.forEach(async function (item, index) {
+                if (index > 3) return;
+                await news.say(item.article + "\n" + item.detailurl);
+            })
+        }
+    } catch (e) {
+        console.error('Bot', 'on message tuling.ask() exception: %s', e && e.message || e)
     }
 
 }
