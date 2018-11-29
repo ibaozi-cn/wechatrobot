@@ -1,13 +1,14 @@
 const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./robot/tuling123");
-
+const path = require('path');
 const {
     config,
     log,
     Wechaty,
     Message,
-    Friendship
+    Friendship,
+    FileBox
 } = require('wechaty');
 
 
@@ -110,8 +111,12 @@ async function onMessage(msg) {
     console.log(`Message: ${msg}`);
 
     let text = msg.text();
-    console.log("msg text " + text);
+    // console.log("msg text " + text);
 
+    if (text === "[Send an emoji, view it on mobile]") {
+        msg.say("您发的表情目前没办法转发，十分抱歉。");
+        return;
+    }
     if (msg.self()) {
         return;
     }
@@ -131,25 +136,59 @@ async function onMessage(msg) {
     }
 
     if (msg.type() !== Message.Type.Text) {
-        await msg.say("目前只支持文本信息哦，很快就支持语音聊天了呢，敬请期待吧。");
+        // await msg.say("目前只支持文本信息哦，很快就支持语音聊天了呢，敬请期待吧。");
+        const room1 = await bot.Room.find("居理测试机器人群1");
+        switch (msg.type()) {
+            case Message.Type.Image:
+                // console.log("msg json"+JSON.stringify(msg));
+                // const url = await msg.toUrlLink();
+                // room1.say(url);
+                const fileName = msg.payload.filename;
+                if (fileName && fileName.endsWith("gif")) {
+                    const file = await msg.toFileBox();
+                    room1.say(file);
+                }
+                if (fileName && fileName.endsWith("jpg")) {
+                    const file = await msg.toFileBox();
+                    // const name = file.name;
+                    // console.log('Save file to: ' + name);
+                    // file.toFile(name);
+                    // room1.say(file);
+                    // const r = filePath => path.resolve(__dirname, filePath);
+                    // const filepath = r('./9124625869023057319.jpg');
+                    // const filefox = FileBox.fromFile(filepath,"9124625869023057319.jpg");
+                    room1.say(file);
+                }
+                break;
+            case Message.Type.Emoticon:
+                console.log("msg json" + JSON.stringify(msg));
+
+
+                break;
+
+        }
+
+
         return;
+    } else {
+        console.log("msg text json" + JSON.stringify(msg));
     }
-    if(text.startsWith("发段子")){
-        const  duanzi = text.substring(3);
+    if (text.startsWith("发段子")) {
+        const duanzi = text.substring(3);
         const room2 = await bot.Room.find("居理测试机器人群2");
-        const room1= await bot.Room.find("居理测试机器人群1");
+        const room1 = await bot.Room.find("居理测试机器人群1");
         room1.say(duanzi);
         room2.say(duanzi);
         return
     }
-    if(text.startsWith("发群1段子")){
-        const  duanzi = text.substring(5);
+    if (text.startsWith("发群1段子")) {
+        const duanzi = text.substring(5);
         const room = await bot.Room.find("居理测试机器人群1");
         room.say(duanzi);
         return
     }
-    if(text.startsWith("发群2段子")){
-        const  duanzi = text.substring(5);
+    if (text.startsWith("发群2段子")) {
+        const duanzi = text.substring(5);
         const room = await bot.Room.find("居理测试机器人群2");
         room.say(duanzi);
         return
