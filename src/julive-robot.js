@@ -117,6 +117,10 @@ async function onMessage(msg) {
         return;
     }
 
+    if (msg.from().name() === '微信团队') {
+        return;
+    }
+
     if (text.includes("开启了朋友验证")) {
         console.log("不是好友了已经");
         return;
