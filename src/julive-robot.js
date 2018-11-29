@@ -113,11 +113,17 @@ async function onMessage(msg) {
     let text = msg.text();
     // console.log("msg text " + text);
 
-    if (text === "[Send an emoji, view it on mobile]") {
-        msg.say("您发的表情目前没办法转发，十分抱歉。");
+    if (msg.self()) {
         return;
     }
-    if (msg.self()) {
+
+    if (text.includes("开启了朋友验证")) {
+        console.log("不是好友了已经");
+        return;
+    }
+
+    if (text === "[Send an emoji, view it on mobile]") {
+        msg.say("您发的表情目前没办法转发，十分抱歉。");
         return;
     }
 
