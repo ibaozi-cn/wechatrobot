@@ -160,7 +160,8 @@ const roomRule = "本群群规，新老同学请注意：\n" +
     "3. 修改一下群名片 ,格式为: 城市 - 昵称";
 
 const ruleMap = {
-    "依然范特西技术交流群": roomRule
+    "依然范特西技术交流群": roomRule,
+    "依然范特西技术交流群2": roomRule
 };
 
 async function onRoomJoin(room, inviteeList, inviter) {
