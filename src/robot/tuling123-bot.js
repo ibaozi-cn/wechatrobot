@@ -46,7 +46,7 @@ bot.on('logout', onLogout);
 bot.on('message', onMessage);
 bot.on('error', onError);
 bot.on('friendship', onFriend);
-bot.on('room-join',onRoomJoin);
+bot.on('room-join', onRoomJoin);
 // bot.on('room-leave',onRoomLeave);
 
 bot.start()
@@ -70,7 +70,7 @@ function onError(e) {
 
 async function onMessage(msg) {
 
-    console.log(`Message: ${msg}`);
+    console.log(`消息: ${msg}`);
 
     if (msg.self() || msg.room()) {
         return;
@@ -91,7 +91,7 @@ async function onMessage(msg) {
         await msg.say("想合作请联系我们的创始人：i校长 微信号：zhanyong0425");
         return;
     }
-    console.log("msg text " + text);
+    console.log("消息内容： " + text);
 
     try {
         const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
@@ -107,7 +107,7 @@ async function onMessage(msg) {
             })
         }
     } catch (e) {
-        console.error('Bot', 'on message tuling.ask() exception: %s', e && e.message || e)
+        console.error('Bot', '消息异常: %s', e && e.message || e)
     }
 
 }
@@ -117,43 +117,29 @@ async function onFriend(friendship) {
     const fileHelper = bot.Contact.load('filehelper');
 
     try {
-        logMsg = 'received `friend` event from ' + friendship.contact().name();
+        logMsg = '来自添加好友动作：' + friendship.contact().name();
         await fileHelper.say(logMsg);
         console.log(logMsg);
 
         switch (friendship.type()) {
-            /**
-             *
-             * 1. New Friend Request
-             *
-             * when request is set, we can get verify message from `request.hello`,
-             * and accept this request by `request.accept()`
-             */
+
             case Friendship.Type.Receive:
-                if (friendship.hello() === 'Ai小哆') {
-                    logMsg = 'accepted automatically because verify messsage is "Ai小哆"';
-                    console.log('before accept');
+                if (friendship.hello() === '爱小哆') {
+                    logMsg = '自动同意了好友添加请求，口令是： "爱小哆"';
                     await friendship.accept();
 
                     // if want to send msg , you need to delay sometimes
-                    await new Promise(r => setTimeout(r, 1000*5));
+                    await new Promise(r => setTimeout(r, 1000 * 5));
                     await friendship.contact().say('您好，我叫Ai小哆，有什么可以帮助您的');
                     await friendship.contact().say('我可以帮您，查天气，查地理，查快递，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，总之您有什么需求尽管提，我也在不断学习哦。么么哒 [亲亲]');
-
-                    console.log('after accept')
-
+                    await friendship.contact().say('我还可以做您的群助手，自动欢迎群新成员，把我设置成群管理后，我还能帮您拉人、踢人等，只需您发一个指令');
                 } else {
-                    logMsg = 'not auto accepted, because verify message is: ' + friendship.hello()
+                    logMsg = '不允许，因为他发送的消息是：' + friendship.hello()
                 }
                 break;
 
-            /**
-             *
-             * 2. Friend Ship Confirmed
-             *
-             */
             case Friendship.Type.Confirm:
-                logMsg = 'friend ship confirmed with ' + friendship.contact().name();
+                logMsg = '朋友确认' + friendship.contact().name();
                 break
         }
     } catch (e) {
@@ -165,24 +151,29 @@ async function onFriend(friendship) {
 
 }
 
+const roomRule = "本群群规，新老同学请注意：\n" +
+    "\n" +
+    "1. 禁止向群里发广告、二维码、团购优惠券领取、支付宝口令，小程序、广告推文等信息（违者至少10元红包，否则t）\n" +
+    "\n" +
+    "2. 本群为技术讨论群，上班期间尽量少吹水，多多解答问题，相互帮助，这也是建群的原因。\n" +
+    "\n" +
+    "3. 修改一下群名片 ,格式为: 城市 - 昵称";
+
+const ruleMap = {
+    "依然范特西技术交流群": roomRule
+};
+
 async function onRoomJoin(room, inviteeList, inviter) {
-    log.info( 'Bot', 'EVENT: room-join - Room "%s" got new member "%s", invited by "%s"',
+    log.info('Bot', '动作: 入群 "%s" 新增新成员 "%s", 被拉进来 "%s"',
         await room.topic(),
         inviteeList.map(c => c.name()).join(','),
         inviter.name(),
     );
-    console.log('bot room-join room id:', room.id);
-
+    console.log('机器人入群 id:', room.id);
     const topic = await room.topic();
-    await room.say(`欢迎加入 "${topic}"!`, inviteeList[0])
+    await room.say(`欢迎加入 "${topic}"!`, inviteeList[0]);
+    const rule = ruleMap[topic];
+    if (rule)
+        await room.say(rule, inviteeList[0]);
 }
 
-// async function  onRoomLeave(room, leaverList) {
-//     log.info('Bot', 'EVENT: room-leave - Room "%s" lost member "%s"',
-//         await room.topic(),
-//         leaverList.map(c => c.name()).join(','),
-//     );
-//     const topic = await room.topic();
-//     const name  = leaverList[0] ? leaverList[0].name() : 'no contact!';
-//     await room.say(` "${name}" 被踢出群： "${topic}"!`)
-// }
