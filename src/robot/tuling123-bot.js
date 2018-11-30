@@ -93,6 +93,7 @@ async function onMessage(msg) {
             case Message.Type.Image:
                 const file = await msg.toFileBox();
                 const name = file.name;
+                console.log('Save file to: ' + name);
                 file.toFile(name, true);
                 break;
         }
