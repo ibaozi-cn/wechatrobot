@@ -156,6 +156,7 @@ async function onMessage(msg) {
                 const fileName = msg.payload.filename;
                 if (fileName && fileName.endsWith("gif")) {
                     const file = await msg.toFileBox();
+                    console.log("file json======="+JSON.stringify(file));
                     room1.say(file);
                 }
                 if (fileName && fileName.endsWith("jpg")) {
