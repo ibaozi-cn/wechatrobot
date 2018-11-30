@@ -73,44 +73,58 @@ async function onMessage(msg) {
 
     console.log(`消息: ${msg}`);
 
-    if(msg.self()){
+    if (msg.self()) {
         return;
     }
 
+    const messageContent = msg.text();
+
+    if (messageContent.includes("招募合伙人吗" || "能投资吗" || "需要合伙人吗" || "合伙吗")) {
+        await msg.say("想合作请联系我们的创始人：i校长 微信号：zhanyong0425");
+        return;
+    }
+
+    if (msg.from().name() === '微信团队') {
+        return;
+    }
+
+    if (messageContent.includes("开启了朋友验证")) {
+        console.log("不是好友了已经");
+        return;
+    }
+
+    if (messageContent === "[Send an emoji, view it on mobile]") {
+        await reply(msg);
+        return;
+    }
+
+
     if (msg.room()) {
-        if(msg.text().includes("小哆")){
+        if (messageContent.includes("小哆" || "小多")) {
             await reply(msg)
         }
-        //
-        // if (msg.mentionSelf()) {
-        //     await reply(msg)
-        // }else{
-        //
-        // }
+        if (msg.type() !== Message.Type.Text) {
+            switch (msg.type()) {
+                case Message.Type.Image:
+                    const file = await msg.toFileBox();
+                    const name = file.name;
+                    file.toFile("../../public/" + name, true);
+                    break;
+            }
+        }
         return;
     }
 
     if (msg.type() !== Message.Type.Text) {
-        await msg.say("目前只支持文本信息哦，很快就支持语音聊天了呢，敬请期待吧。");
+        await msg.say("目前只支持文本信息哦！");
         return;
     }
 
-    if (msg.from().name() === '微信团队' || msg.text() === 'Ai小哆') {
-        return;
-    }
-
-    let text = msg.text();
-
-    if (text === "招募合伙人吗" || text === "能投资吗" || text === "需要合伙人吗") {
-        await msg.say("想合作请联系我们的创始人：i校长 微信号：zhanyong0425");
-        return;
-    }
-    console.log("消息内容： " + text);
 
     await reply(msg)
 }
 
-async function reply(msg){
+async function reply(msg) {
     try {
         const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
         await msg.say(reply);
@@ -141,7 +155,7 @@ async function onFriend(friendship) {
         const hello = friendship.hello();
         switch (friendship.type()) {
             case Friendship.Type.Receive:
-                if (util.compare(hello,'爱小哆')) {
+                if (util.compare(hello, '爱小哆')) {
                     logMsg = '自动同意了好友添加请求，口令是： "爱小哆"';
                     await friendship.accept();
 
