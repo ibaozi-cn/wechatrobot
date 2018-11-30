@@ -108,7 +108,7 @@ async function onMessage(msg) {
                 case Message.Type.Image:
                     const file = await msg.toFileBox();
                     const name = file.name;
-                    file.toFile("./../public/" + name, true);
+                    file.toFile("../"+name, true);
                     break;
             }
         }
