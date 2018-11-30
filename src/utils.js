@@ -1,4 +1,4 @@
-const pinyin = require("pinyin");
+// const pinyin = require("pinyin");
 
 const compare = (() => {
     function compareArray(a, b) {
@@ -59,17 +59,17 @@ const compare = (() => {
     return compare;
 })();
 
-function compareHello(hello) {
-    return compare(pinyin(hello, {
-        style: pinyin.STYLE_NORMAL,
-        segment: false
-    }), pinyin("爱小哆", {
-        style: pinyin.STYLE_NORMAL,
-        segment: false
-    }))
-}
+// function compareHello(hello) {
+//     return compare(pinyin(hello, {
+//         style: pinyin.STYLE_NORMAL,
+//         segment: false
+//     }), pinyin("爱小哆", {
+//         style: pinyin.STYLE_NORMAL,
+//         segment: false
+//     }))
+// }
 
 module.exports = {
     compare: compare,
-    compareH: compareHello
+    // compareH: compareHello
 };

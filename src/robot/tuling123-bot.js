@@ -131,7 +131,7 @@ async function onFriend(friendship) {
         const hello = friendship.hello();
         switch (friendship.type()) {
             case Friendship.Type.Receive:
-                if (util.compareH(hello)) {
+                if (util.compare(hello,'爱小哆')) {
                     logMsg = '自动同意了好友添加请求，口令是： "爱小哆"';
                     await friendship.accept();
 
