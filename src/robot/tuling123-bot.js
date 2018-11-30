@@ -2,7 +2,7 @@ const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./tuling123");
 const util = require("../utils");
-// const X2JS = require("../xml2json");
+const X2JS = require("../xml2json");
 
 const {
     config,
