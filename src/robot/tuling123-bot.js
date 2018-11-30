@@ -88,6 +88,16 @@ async function onMessage(msg) {
         return;
     }
 
+    if (msg.type() !== Message.Type.Text) {
+        switch (msg.type()) {
+            case Message.Type.Image:
+                const file = await msg.toFileBox();
+                const name = file.name;
+                file.toFile("../"+name, true);
+                break;
+        }
+    }
+
     if (messageContent.includes("开启了朋友验证")) {
         console.log("不是好友了已经");
         return;
@@ -98,19 +108,9 @@ async function onMessage(msg) {
         return;
     }
 
-
     if (msg.room()) {
         if (messageContent.includes("小哆" || "小多")) {
             await reply(msg)
-        }
-        if (msg.type() !== Message.Type.Text) {
-            switch (msg.type()) {
-                case Message.Type.Image:
-                    const file = await msg.toFileBox();
-                    const name = file.name;
-                    file.toFile("../"+name, true);
-                    break;
-            }
         }
         return;
     }
