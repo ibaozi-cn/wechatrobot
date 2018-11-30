@@ -145,7 +145,12 @@ async function onMessage(msg) {
 
 async function reply(msg) {
     try {
-        const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
+        let text = msg.text();
+        if (text.includes("小哆")) {
+            text = text.replace("小哆", "");
+            console.log("replace text======" + text)
+        }
+        const {text: reply, url: url, list: listNews} = await tuling.ask(text, {userid: msg.from()});
         await msg.say(reply);
         if (url) {
             await msg.say(url);
