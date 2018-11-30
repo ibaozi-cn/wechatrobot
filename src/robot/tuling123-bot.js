@@ -1,6 +1,7 @@
 const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./tuling123");
+const util = require("../utils");
 
 const {
     config,
@@ -73,6 +74,9 @@ async function onMessage(msg) {
     console.log(`消息: ${msg}`);
 
     if (msg.self() || msg.room()) {
+        if (msg.mentionSelf()) {
+            await reply(msg)
+        }
         return;
     }
 
@@ -93,6 +97,10 @@ async function onMessage(msg) {
     }
     console.log("消息内容： " + text);
 
+    await reply(msg)
+}
+
+async function reply(msg){
     try {
         const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
         await msg.say(reply);
@@ -109,8 +117,8 @@ async function onMessage(msg) {
     } catch (e) {
         console.error('Bot', '消息异常: %s', e && e.message || e)
     }
-
 }
+
 
 async function onFriend(friendship) {
     let logMsg;
@@ -120,11 +128,10 @@ async function onFriend(friendship) {
         logMsg = '来自添加好友动作：' + friendship.contact().name();
         await fileHelper.say(logMsg);
         console.log(logMsg);
-
+        const hello = friendship.hello();
         switch (friendship.type()) {
-
             case Friendship.Type.Receive:
-                if (friendship.hello() === '爱小哆') {
+                if (util.compareH(hello)) {
                     logMsg = '自动同意了好友添加请求，口令是： "爱小哆"';
                     await friendship.accept();
 
