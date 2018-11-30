@@ -65,15 +65,17 @@ function onScan(qrcode, status) {
 function onLogin(user) {
     console.log(`${user} login`);
     fs.readdir("image/", (error, files) => {
-        console.log("files===="+JSON.stringify(files));
+        if (!files) return;
+        console.log("files====" + JSON.stringify(files));
         files.forEach(file => {
-            cacheImageName.push(file.name)
-        })
+            cacheImageName.push(file)
+        });
     })
 }
 
 function onLogout(user) {
-    console.log(`${user} logout`)
+    console.log(`${user} logout`);
+    randomImageList = [];
 }
 
 function onError(e) {
@@ -102,11 +104,20 @@ async function onMessage(msg) {
     if (msg.type() !== Message.Type.Text) {
         switch (msg.type()) {
             case Message.Type.Image:
-                const file = await msg.toFileBox();
-                const name = file.name;
-                console.log('Save file to: ' + name);
-                file.toFile("image/" + name, true);
-                cacheImageName.push(name);
+                const fileName = msg.payload.filename;
+                if (fileName && fileName.endsWith("gif")) {
+                    const file = await msg.toFileBox();
+                    const name = file.name;
+                    console.log('Save file to: ' + name);
+                    file.toFile("image/" + name, true);
+                    cacheImageName.push(name);
+                }
+                const length = cacheImageName.length;
+                const randImage = randUnique(0, length, 10);
+                const imageName = cacheImageName[randImage[2]];
+                const filebox = FileBox.fromFile('image/' + imageName);
+                if (filebox)
+                    msg.say(filebox);
                 break;
         }
     }
@@ -222,3 +233,30 @@ async function onRoomJoin(room, inviteeList, inviter) {
         await room.say(rule, inviteeList[0]);
 }
 
+/**
+ * 获取不重复随机数
+ * @param integer start 随机数最小值
+ * @param integer end 随机数最大值
+ * @param integer size 随机数获取数量 最小为1，默认1
+ * @return integer|array 如 1或者[2,4,7,9]
+ */
+function randUnique(start, end, size) {
+    // 全部随机数值
+    const allNums = [];
+
+    // 判断获取随机数个数
+    size = size ? (size > end - start ? end - start : size) : 1;
+
+    // 生成随机数值区间数组
+    for (let i = start, k = 0; i <= end; i++, k++) {
+        allNums[k] = i;
+    }
+
+    // 打撒数组排序
+    allNums.sort(function () {
+        return 0.5 - Math.random();
+    });
+
+    // 获取数组从第一个开始到指定个数的下标区间
+    return allNums.slice(0, size);
+}
