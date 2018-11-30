@@ -2,8 +2,7 @@ const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./tuling123");
 const util = require("../utils");
-const X2JS = require("../xml2json");
-
+const parser = require('xml2json');
 const {
     config,
     log,
@@ -90,8 +89,7 @@ async function onMessage(msg) {
     }
 
     if (msg.type() !== Message.Type.Text) {
-        const x2js = new X2JS();
-        console.log("msg json=======" + JSON.stringify(x2js.xml_str2json(msg)));
+        console.log("msg json=======" + JSON.stringify(parser.toJson(messageContent)));
         switch (msg.type()) {
             case Message.Type.Image:
                 const file = await msg.toFileBox();
