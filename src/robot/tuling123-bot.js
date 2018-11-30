@@ -148,7 +148,10 @@ async function reply(msg) {
         let text = msg.text();
         if (text.includes("小哆")) {
             text = text.replace("小哆", "");
-            console.log("replace text======" + text)
+            console.log("replace text======" + text);
+            if(text.includes("@Ai")){
+                text = text.replace("@Ai", "");
+            }
         }
         const {text: reply, url: url, list: listNews} = await tuling.ask(text, {userid: msg.from()});
         await msg.say(reply);
