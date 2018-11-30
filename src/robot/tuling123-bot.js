@@ -2,13 +2,18 @@ const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./tuling123");
 const util = require("../utils");
-// const parser = require('xml2json');
+
+const fs = require('fs');
+
+const cacheImageName = [];
+
 const {
     config,
     log,
     Wechaty,
     Message,
-    Friendship
+    Friendship,
+    FileBox
 } = require('wechaty');
 
 
@@ -58,7 +63,13 @@ function onScan(qrcode, status) {
 }
 
 function onLogin(user) {
-    console.log(`${user} login`)
+    console.log(`${user} login`);
+    fs.readdir("image/", (error, files) => {
+        console.log("files===="+JSON.stringify(files));
+        files.forEach(file => {
+            cacheImageName.push(file.name)
+        })
+    })
 }
 
 function onLogout(user) {
@@ -89,13 +100,13 @@ async function onMessage(msg) {
     }
 
     if (msg.type() !== Message.Type.Text) {
-        // console.log("msg json=======" + JSON.stringify(parser.toJson(messageContent)));
         switch (msg.type()) {
             case Message.Type.Image:
                 const file = await msg.toFileBox();
                 const name = file.name;
                 console.log('Save file to: ' + name);
                 file.toFile("image/" + name, true);
+                cacheImageName.push(name);
                 break;
         }
     }
