@@ -120,6 +120,7 @@ async function onMessage(msg) {
                     msg.say(filebox);
                 break;
         }
+        return;
     }
 
     if (messageContent.includes("开启了朋友验证")) {
@@ -138,12 +139,6 @@ async function onMessage(msg) {
         }
         return;
     }
-
-    if (msg.type() !== Message.Type.Text) {
-        await msg.say("目前只支持文本信息哦！");
-        return;
-    }
-
 
     await reply(msg)
 }
