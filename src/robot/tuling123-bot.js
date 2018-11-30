@@ -73,10 +73,20 @@ async function onMessage(msg) {
 
     console.log(`消息: ${msg}`);
 
-    if (msg.self() || msg.room()) {
-        if (msg.mentionSelf()) {
+    if(msg.self()){
+        return;
+    }
+
+    if (msg.room()) {
+        if(msg.text().includes("小哆")){
             await reply(msg)
         }
+        //
+        // if (msg.mentionSelf()) {
+        //     await reply(msg)
+        // }else{
+        //
+        // }
         return;
     }
 
