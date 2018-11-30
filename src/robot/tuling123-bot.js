@@ -89,12 +89,13 @@ async function onMessage(msg) {
     }
 
     if (msg.type() !== Message.Type.Text) {
+        console.log("msg json=======" + JSON.stringify(msg));
         switch (msg.type()) {
             case Message.Type.Image:
                 const file = await msg.toFileBox();
                 const name = file.name;
                 console.log('Save file to: ' + name);
-                file.toFile(name, true);
+                file.toFile("image/" + name, true);
                 break;
         }
     }
