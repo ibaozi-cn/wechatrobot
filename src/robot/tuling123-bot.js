@@ -55,6 +55,9 @@ bot.on('friendship', onFriend);
 bot.on('room-join', onRoomJoin);
 // bot.on('room-leave',onRoomLeave);
 
+let isAutoReply = false;
+let isAutoReplyRoom = {};
+
 bot.start()
     .catch(console.error);
 
@@ -129,12 +132,26 @@ async function onMessage(msg) {
     }
 
     if (messageContent === "[Send an emoji, view it on mobile]") {
-        await reply(msg);
+        // await msg.say("");
         return;
     }
 
-    if (msg.room()) {
-        if (messageContent.includes("小哆" || "小多")) {
+    const room = msg.room();
+
+    if (room) {
+        if (isAutoReply && isAutoReplyRoom[room.id]) {
+            console.log("开启自动回复一分钟");
+            await reply(msg);
+            return
+        }
+        if (messageContent.includes("小哆" || "小多" || "哆啊")) {
+            isAutoReply = true;
+            isAutoReplyRoom[room.id] = true;
+            setTimeout(function () {
+                isAutoReply = false;
+                isAutoReplyRoom[room.id] = false;
+                console.log("关闭自动回复");
+            }, 1000 * 60);
             await reply(msg)
         }
         return;
@@ -148,7 +165,7 @@ async function reply(msg) {
         let text = msg.text();
         if (text.includes("小哆")) {
             text = text.replace("小哆", "");
-            if(text.includes("@Ai")){
+            if (text.includes("@Ai")) {
                 text = text.replace("@Ai", "");
             }
             console.log("replace text======" + text);
