@@ -144,7 +144,7 @@ async function onMessage(msg) {
             await reply(msg);
             return
         }
-        if (messageContent.includes("小哆" || "小多" || "哆啊")) {
+        if (messageContent.includes("小哆")) {
             isAutoReply = true;
             isAutoReplyRoom[room.id] = true;
             setTimeout(function () {
