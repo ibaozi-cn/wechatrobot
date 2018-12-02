@@ -7,6 +7,8 @@ const fs = require('fs');
 
 const cacheImageName = [];
 
+const outReplyList = ["小哆退下了", "有事叫我，我走了", "我去休息了，么么哒", "没电了,我去充充电", "时间到了，我要走了，有事call me","我走了，五星好评哦亲"];
+
 const {
     config,
     log,
@@ -150,7 +152,8 @@ async function onMessage(msg) {
             setTimeout(function () {
                 isAutoReply = false;
                 isAutoReplyRoom[room.id] = false;
-                room.say("我去休息了有事喊我名字哦");
+                const index = randUnique(0, outReplyList.length, 1)[0];
+                room.say(outReplyList[index]);
                 console.log("关闭自动回复");
             }, 1000 * 60 * 3);
             await reply(msg)
