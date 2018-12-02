@@ -140,7 +140,7 @@ async function onMessage(msg) {
 
     if (room) {
         if (isAutoReply && isAutoReplyRoom[room.id]) {
-            console.log("开启自动回复一分钟");
+            console.log("开启自动回复三分钟");
             await reply(msg);
             return
         }
@@ -150,8 +150,9 @@ async function onMessage(msg) {
             setTimeout(function () {
                 isAutoReply = false;
                 isAutoReplyRoom[room.id] = false;
+                room.say("我去休息了有事喊我名字哦");
                 console.log("关闭自动回复");
-            }, 1000 * 60);
+            }, 1000 * 60 * 3);
             await reply(msg)
         }
         return;
