@@ -71,7 +71,7 @@ function onLogin(user) {
     console.log(`${user} login`);
     fs.readdir("image/", (error, files) => {
         if (!files) return;
-        console.log("files====" + JSON.stringify(files));
+        // console.log("files====" + JSON.stringify(files));
         files.forEach(file => {
             cacheImageName.push(file)
         });
