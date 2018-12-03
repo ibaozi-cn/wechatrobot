@@ -156,6 +156,7 @@ async function onMessage(msg) {
         if (messageContent.includes("小哆")) {
             isAutoReplyRoom[room.topic()] = true;
             setTimeout(function () {
+                if (isAutoReplyRoom[room.topic()] === false) return;
                 isAutoReplyRoom[room.topic()] = false;
                 const index = randUnique(0, outReplyList.length, 1)[0];
                 room.say(outReplyList[index]);
