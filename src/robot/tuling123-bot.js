@@ -141,7 +141,7 @@ async function onMessage(msg) {
 
     if (room) {
         const from = msg.from();
-        if (from.name() === "i校长" && messageContent.includes("自闭去吧") || messageContent.includes("滚回家去") || messageContent.includes("别给我丢人了")) {
+        if (isAutoReplyRoom[room.topic()] && from.name() === "i校长" && messageContent.includes("自闭去") || messageContent.includes("回家去") || messageContent.includes("别给我丢人了")) {
             isAutoReplyRoom[room.topic()] = false;
             console.log("命令关闭自动回复");
             const index = randUnique(0, offReplyList.length, 1)[0];
