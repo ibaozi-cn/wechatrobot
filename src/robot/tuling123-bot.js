@@ -8,6 +8,7 @@ const fs = require('fs');
 const cacheImageName = [];
 
 const outReplyList = ["小哆退下了", "有事叫我，我走了", "我去休息了，么么哒", "没电了,我去充充电", "时间到了，我要走了，有事call me", "我走了，五星好评哦亲"];
+const offReplyList = ["遵命，退下了，哼！", "下次别找我，哼", "哼，不见", "以后都别找我了", "我生气了，哼", "不和你玩了，没劲"];
 
 const {
     config,
@@ -57,7 +58,6 @@ bot.on('friendship', onFriend);
 bot.on('room-join', onRoomJoin);
 // bot.on('room-leave',onRoomLeave);
 
-let isAutoReply = false;
 let isAutoReplyRoom = {};
 
 bot.start()
@@ -80,7 +80,6 @@ function onLogin(user) {
 
 function onLogout(user) {
     console.log(`${user} logout`);
-    randomImageList = [];
 }
 
 function onError(e) {
@@ -141,17 +140,23 @@ async function onMessage(msg) {
     const room = msg.room();
 
     if (room) {
-        if (isAutoReply && isAutoReplyRoom[room.id]) {
+        const from = msg.from();
+        if (from.name() === "i校长" && messageContent.includes("自闭去吧") || messageContent.includes("滚回家去") || messageContent.includes("别给我丢人了")) {
+            isAutoReplyRoom[room.topic()] = false;
+            console.log("命令关闭自动回复");
+            const index = randUnique(0, offReplyList.length, 1)[0];
+            room.say(offReplyList[index]);
+            return
+        }
+        if (isAutoReplyRoom[room.topic()]) {
             console.log("开启自动回复三分钟");
             await reply(msg);
             return
         }
         if (messageContent.includes("小哆")) {
-            isAutoReply = true;
-            isAutoReplyRoom[room.id] = true;
+            isAutoReplyRoom[room.topic()] = true;
             setTimeout(function () {
-                isAutoReply = false;
-                isAutoReplyRoom[room.id] = false;
+                isAutoReplyRoom[room.topic()] = false;
                 const index = randUnique(0, outReplyList.length, 1)[0];
                 room.say(outReplyList[index]);
                 console.log("关闭自动回复");
