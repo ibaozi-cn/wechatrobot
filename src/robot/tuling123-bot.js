@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const cacheImageName = [];
 
-const outReplyList = ["小哆退下了", "有事叫我，我走了", "我去休息了，么么哒", "没电了,我去充充电", "时间到了，我要走了，有事call me","我走了，五星好评哦亲"];
+const outReplyList = ["小哆退下了", "有事叫我，我走了", "我去休息了，么么哒", "没电了,我去充充电", "时间到了，我要走了，有事call me", "我走了，五星好评哦亲"];
 
 const {
     config,
@@ -239,8 +239,10 @@ const roomRule = "本群群规，新老同学请注意：\n" +
     "3. 修改一下群名片 ,格式为: 城市 - 昵称";
 
 const ruleMap = {
+
     "依然范特西技术交流群": roomRule,
-    "依然范特西技术交流群2": roomRule
+    "依然饭特稀西交流群2": roomRule,
+    "@@1abc14164bd56a9557319c34a6fd55d5f3b14c676163abacf1d684abf315daa3": roomRule
 };
 
 async function onRoomJoin(room, inviteeList, inviter) {
