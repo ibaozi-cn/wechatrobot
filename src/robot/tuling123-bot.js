@@ -243,11 +243,13 @@ const roomRule = "本群群规，新老同学请注意：\n" +
     "\n" +
     "3. 修改一下群名片 ,格式为: 城市 - 昵称";
 
-const ruleMap = {
+const roomRuleXiaoDuo = roomRule+"\n 本群致力于打造微信客户端的Ai机器人，您可以提任何功能需求，提任何奇葩问题。再次欢迎您的到来，让我们一起迎接新的人工智能。";
 
+const ruleMap = {
     "依然范特西技术交流群": roomRule,
     "依然饭特稀西交流群2": roomRule,
-    "@@1abc14164bd56a9557319c34a6fd55d5f3b14c676163abacf1d684abf315daa3": roomRule
+    "@@1abc14164bd56a9557319c34a6fd55d5f3b14c676163abacf1d684abf315daa3": roomRule,
+    "小哆智能语音": roomRuleXiaoDuo
 };
 
 async function onRoomJoin(room, inviteeList, inviter) {
