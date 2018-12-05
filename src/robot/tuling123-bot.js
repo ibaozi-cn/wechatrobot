@@ -58,7 +58,7 @@ bot.on('friendship', onFriend);
 bot.on('room-join', onRoomJoin);
 // bot.on('room-leave',onRoomLeave);
 
-let isAutoReplyRoom = {};
+const isAutoReplyRoom = {};
 
 bot.start()
     .catch(console.error);
@@ -139,24 +139,15 @@ async function onMessage(msg) {
     const room = msg.room();
 
     if (room) {
-        const from = msg.from();
-        if (isAutoReplyRoom[room.topic()] && from.name() === "i校长" && messageContent.includes("自闭去") || messageContent.includes("回家去") || messageContent.includes("别给我丢人了")) {
-            isAutoReplyRoom[room.topic()] = false;
-            console.log("命令关闭自动回复");
-            const index = randUnique(0, offReplyList.length, 1)[0];
-            room.say(offReplyList[index]);
-            return
-        }
-        if (isAutoReplyRoom[room.topic()]) {
+        if (isAutoReplyRoom[room.id]) {
             console.log("开启自动回复三分钟");
             await reply(msg);
             return
         }
         if (messageContent.includes("小哆")) {
-            isAutoReplyRoom[room.topic()] = true;
+            isAutoReplyRoom[room.id] = true;
             setTimeout(function () {
-                if (isAutoReplyRoom[room.topic()] === false) return;
-                isAutoReplyRoom[room.topic()] = false;
+                isAutoReplyRoom[room.id] = false;
                 const index = randUnique(0, outReplyList.length, 1)[0];
                 room.say(outReplyList[index]);
                 console.log("关闭自动回复");
@@ -165,7 +156,6 @@ async function onMessage(msg) {
         }
         return;
     }
-
     await reply(msg)
 }
 
