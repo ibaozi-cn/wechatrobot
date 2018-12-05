@@ -8,7 +8,6 @@ const fs = require('fs');
 const cacheImageName = [];
 
 const outReplyList = ["小哆退下了", "有事叫我，我走了", "我去休息了，么么哒", "没电了,我去充充电", "时间到了，我要走了，有事call me", "我走了，五星好评哦亲"];
-const offReplyList = ["遵命，退下了，哼！", "下次别找我，哼", "哼，不见", "以后都别找我了", "我生气了，哼", "不和你玩了，没劲"];
 
 const {
     config,
@@ -42,10 +41,8 @@ console.log(welcome);
  *
  */
 const TULING123_API_KEY = '8ace61c729e7475190a14f4ed7679d7e';
-const TULING123_API_KEY_2 = '0c5ce9bb0c4e4f43ae0fad21f88c38ba';
 
 const tuling = new Tuling123(TULING123_API_KEY);
-const tuling_2 = new Tuling123(TULING123_API_KEY_2);
 
 const bot = new Wechaty();
 
@@ -95,6 +92,7 @@ async function onMessage(msg) {
     }
 
     const messageContent = msg.text();
+    console.log(`消息内容: ${messageContent}`);
 
     if (messageContent.includes("招募合伙人吗" || "能投资吗" || "需要合伙人吗" || "合伙吗")) {
         await msg.say("想合作请联系我们的创始人：i校长 微信号：zhanyong0425");
@@ -244,7 +242,6 @@ const roomRuleXiaoDuo = "本群群规，新老同学请注意：\n" +
 const ruleMap = {
     "依然范特西技术交流群": roomRule,
     "依然饭特稀西交流群2": roomRule,
-    "@@1abc14164bd56a9557319c34a6fd55d5f3b14c676163abacf1d684abf315daa3": roomRule,
     "小哆智能语音": roomRuleXiaoDuo
 };
 
