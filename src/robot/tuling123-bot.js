@@ -69,7 +69,7 @@ function onScan(qrcode, status) {
 
 function onLogin(user) {
     console.log(`${user} login`);
-    fs.readdir("image/", (error, files) => {
+    fs.readdir("image_cache/image/", (error, files) => {
         if (!files) return;
         // console.log("files====" + JSON.stringify(files));
         files.forEach(file => {
@@ -114,12 +114,11 @@ async function onMessage(msg) {
                     const name = file.name;
                     console.log('Save file to: ' + name);
                     file.toFile("image/" + name, true);
-                    cacheImageName.push(name);
                 }
                 const length = cacheImageName.length;
                 const randImage = randUnique(0, length, 10);
                 const imageName = cacheImageName[randImage[2]];
-                const filebox = FileBox.fromFile('image/' + imageName);
+                const filebox = FileBox.fromFile('image_cache/image/' + imageName);
                 if (filebox)
                     msg.say(filebox);
                 break;
