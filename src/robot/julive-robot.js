@@ -1,6 +1,6 @@
 const qrTerm = require("qrcode-terminal");
 
-const Tuling123 = require("./robot/tuling123");
+const Tuling123 = require("./tuling123");
 const path = require('path');
 const {
     config,

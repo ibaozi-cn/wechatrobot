@@ -255,9 +255,9 @@ async function onRoomJoin(room, inviteeList, inviter) {
     const topic = await room.topic();
     await room.say(`欢迎加入 "${topic}"!`, inviteeList[0]);
     const rule = ruleMap[topic];
-    if (rule){
+    if (rule) {
         await room.say(rule, inviteeList[0]);
-        if(topic==="小哆智能语音"){
+        if (topic === "小哆智能语音") {
             await room.say('我可以帮您，查天气，查地理，查快递，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，我一直在不断学习哦。么么哒 [亲亲]');
             await room.say(`再次欢迎大家成为小哆第一批体验用户,有任何想法和需求尽管提哦。有事喊我的名字'小哆'，我就会主动和你聊天哦。`);
         }
