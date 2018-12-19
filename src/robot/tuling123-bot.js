@@ -9,6 +9,16 @@ const cacheImageName = [];
 
 const outReplyList = ["小哆退下了", "有事叫我，我走了", "我去休息了，么么哒", "没电了,我去充充电", "时间到了，我要走了，有事call me", "我走了，五星好评哦亲"];
 
+const cacheGroupSendRule = {};
+
+const cacheGroupSendRequest = {};
+
+let cacheRoomList = [];
+
+const cacheRoomKeyList = {};
+
+let cacheRoomReplayString = "";
+
 const {
     config,
     log,
@@ -64,7 +74,7 @@ function onScan(qrcode, status) {
     qrTerm.generate(qrcode, {small: true})  // show qrcode on console
 }
 
-function onLogin(user) {
+async function onLogin(user) {
     console.log(`${user} login`);
     fs.readdir("image_cache/image/", (error, files) => {
         if (!files) return;
@@ -72,7 +82,19 @@ function onLogin(user) {
         files.forEach(file => {
             cacheImageName.push(file)
         });
-    })
+    });
+    cacheRoomList = await bot.Room.findAll();
+    console.log("cacheRoomList==" + JSON.stringify(cacheRoomList));
+    let attr = [];
+    cacheRoomList.forEach(function (item, index) {
+        cacheRoomKeyList[index] = item;
+        attr.push("群" + index);
+        attr.push(":" + item.topic());
+        attr.push("\n");
+    });
+    console.log("cacheRoomKeyList==" + JSON.stringify(cacheRoomKeyList));
+    cacheRoomReplayString = attr.join("");
+    console.log("cacheRoomReplayString==" + cacheRoomReplayString);
 }
 
 function onLogout(user) {
@@ -87,20 +109,75 @@ async function onMessage(msg) {
 
     console.log(`消息: ${msg}`);
 
+    const messageContent = msg.text();
+    console.log(`消息内容: ${messageContent}`);
+
     if (msg.self()) {
         return;
     }
 
-    const messageContent = msg.text();
-    console.log(`消息内容: ${messageContent}`);
+    const name = msg.from().name();
 
-    if (messageContent.includes("招募合伙人吗" || "能投资吗" || "需要合伙人吗" || "合伙吗")) {
-        await msg.say("想合作请联系我们的创始人：i校长 微信号：zhanyong0425");
+    if (name === '微信团队') {
         return;
     }
 
-    if (msg.from().name() === '微信团队') {
+    if (messageContent.includes("开启了朋友验证")) {
+        console.log("不是好友了已经");
         return;
+    }
+
+    if (messageContent === "[Send an emoji, view it on mobile]") {
+        // await msg.say("");
+        return;
+    }
+
+    if (messageContent.includes("合伙吗") || messageContent.includes("你的主人是") || messageContent.includes("你主人是") || messageContent.includes("你爸爸是") || messageContent.includes("你的爸爸是")) {
+        await msg.say("想联系我的主人？请长按扫描下方二维码，添加好友哦");
+        const filebox = FileBox.fromFile('image_cache/xiaozhang.jpeg');
+        msg.say(filebox);
+        return;
+    }
+
+    if (messageContent.includes("我要群发") || messageContent.includes("我想群发") || messageContent.includes("群发消息")) {
+        cacheGroupSendRequest[name] = true;
+        msg.say(name + "已为您开启群发功能");
+        setTimeout(function () {
+            cacheGroupSendRequest[name] = false;
+            msg.say(name + "体验时间到了亲，已关闭群发功能");
+        }, 1000 * 60 * 3);
+        msg.say("小哆所在群组如下：" + cacheRoomReplayString);
+        const filebox = FileBox.fromFile('image_cache/rootSendRules.jpeg');
+        msg.say(filebox);
+        return;
+    }
+
+    if (cacheGroupSendRequest[name]) {
+        if (messageContent.includes("发群消息+")) {
+            cacheRoomList.forEach(function (item) {
+                if (item.has(msg.from())) {
+                    item.say(name + "通过小哆转发以下消息：\n" + messageContent.replace("发群消息+", ""))
+                } else {
+                    msg.say(name + "抱歉您不在该【" + item.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
+                }
+            });
+            return;
+        }
+        if (messageContent.includes("发群")) {
+            const arry = messageContent.split("+");
+            const roomKey = arry[0].replace("发群", "");
+            const room = cacheRoomKeyList[roomKey];
+            if (room) {
+                if (room.has(msg.from())) {
+                    room.say(name + "通过小哆转发以下消息：\n" + messageContent.replace(arry[0] + "+", ""))
+                }else{
+                    msg.say(name + "抱歉您不在该【" + room.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
+                }
+            }else{
+                msg.say(name + "抱歉没找到这个群呀")
+            }
+            return;
+        }
     }
 
     if (msg.type() !== Message.Type.Text) {
@@ -121,16 +198,6 @@ async function onMessage(msg) {
                     msg.say(filebox);
                 break;
         }
-        return;
-    }
-
-    if (messageContent.includes("开启了朋友验证")) {
-        console.log("不是好友了已经");
-        return;
-    }
-
-    if (messageContent === "[Send an emoji, view it on mobile]") {
-        // await msg.say("");
         return;
     }
 
