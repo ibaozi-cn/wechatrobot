@@ -92,7 +92,7 @@ async function onLogin(user) {
             attr.push("群" + index);
             attr.push(":" + str);
             attr.push("\n");
-            if (index === cacheRoomList.length-1) {
+            if (index === cacheRoomList.length - 1) {
                 cacheRoomReplayString = attr.join("");
                 console.log("cacheRoomReplayString==" + cacheRoomReplayString);
             }
@@ -157,6 +157,7 @@ async function onMessage(msg) {
     }
 
     if (cacheGroupSendRequest[name]) {
+        console.log("群发消息开始");
         if (messageContent.includes("发群消息+")) {
             cacheRoomList.forEach(function (item) {
                 if (item.has(msg.from())) {
@@ -182,6 +183,7 @@ async function onMessage(msg) {
             }
             return;
         }
+        return;
     }
 
     if (msg.type() !== Message.Type.Text) {
