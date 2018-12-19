@@ -164,7 +164,9 @@ async function onMessage(msg) {
                     if (bool) {
                         item.say(name + "通过小哆转发以下消息：\n" + messageContent.replace("发群消息+", ""))
                     } else {
-                        msg.say(name + "抱歉您不在该【" + item.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
+                        item.topic().then(topic => {
+                            msg.say(name + "抱歉您不在该【" + topic + "】群，不能帮您转发，如果需要，请告诉i校长")
+                        });
                     }
                 });
             });
@@ -179,7 +181,9 @@ async function onMessage(msg) {
                     if (bool) {
                         room.say(name + "通过小哆转发以下消息：\n" + messageContent.replace(arry[0] + "+", ""))
                     } else {
-                        msg.say(name + "抱歉您不在该【" + room.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
+                        room.topic().then(topic => {
+                            msg.say(name + "抱歉您不在该【" + topic + "】群，不能帮您转发，如果需要，请告诉i校长")
+                        });
                     }
                 });
             } else {
