@@ -84,19 +84,21 @@ async function onLogin(user) {
         });
     });
     cacheRoomList = await bot.Room.findAll();
-    console.log("cacheRoomList==" + JSON.stringify(cacheRoomList));
+    // console.log("cacheRoomList==" + JSON.stringify(cacheRoomList));
     let attr = [];
     cacheRoomList.forEach(function (item, index) {
+        cacheRoomKeyList[index] = item;
         item.topic().then(function (str) {
-            cacheRoomKeyList[index] = item;
             attr.push("群" + index);
             attr.push(":" + str);
             attr.push("\n");
+            if (index === cacheRoomList.length-1) {
+                cacheRoomReplayString = attr.join("");
+                console.log("cacheRoomReplayString==" + cacheRoomReplayString);
+            }
         });
     });
-    console.log("cacheRoomKeyList==" + JSON.stringify(cacheRoomKeyList));
-    cacheRoomReplayString = attr.join("");
-    console.log("cacheRoomReplayString==" + cacheRoomReplayString);
+    // console.log("cacheRoomKeyList==" + JSON.stringify(cacheRoomKeyList));
 }
 
 function onLogout(user) {
