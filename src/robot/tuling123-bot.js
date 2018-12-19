@@ -86,12 +86,13 @@ async function onLogin(user) {
     cacheRoomList = await bot.Room.findAll();
     console.log("cacheRoomList==" + JSON.stringify(cacheRoomList));
     let attr = [];
-    cacheRoomList.forEach(async function (item, index) {
-        cacheRoomKeyList[index] = item;
-        attr.push("群" + index);
-        const topic = await item.topic();
-        attr.push(":" + topic);
-        attr.push("\n");
+    cacheRoomList.forEach(function (item, index) {
+        item.topic().then(function (str) {
+            cacheRoomKeyList[index] = item;
+            attr.push("群" + index);
+            attr.push(":" + str);
+            attr.push("\n");
+        });
     });
     console.log("cacheRoomKeyList==" + JSON.stringify(cacheRoomKeyList));
     cacheRoomReplayString = attr.join("");
