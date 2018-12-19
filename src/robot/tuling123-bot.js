@@ -136,14 +136,14 @@ async function onMessage(msg) {
         return;
     }
 
-    if (messageContent.includes("合伙吗") || messageContent.includes("你的主人是") || messageContent.includes("你主人是") || messageContent.includes("你爸爸是") || messageContent.includes("你的爸爸是")) {
+    if (messageContent.includes("合伙吗") || messageContent.includes("你的主人是") || messageContent.includes("你主人是") || messageContent.includes("你爸爸是") || messageContent.includes("你老爸是") || messageContent.includes("你爸是") || messageContent.includes("你的爸爸是")) {
         await msg.say("想联系我的主人？请长按扫描下方二维码，添加好友哦");
         const filebox = FileBox.fromFile('image_cache/xiaozhang.jpeg');
         msg.say(filebox);
         return;
     }
 
-    if (messageContent.includes("我要群发") || messageContent.includes("我想群发") || messageContent.includes("群发消息")) {
+    if (messageContent.includes("我要群发") || messageContent.includes("我想群发")) {
         cacheGroupSendRequest[name] = true;
         msg.say(name + "已为您开启群发功能");
         setTimeout(function () {
@@ -160,11 +160,13 @@ async function onMessage(msg) {
         console.log("群发消息开始");
         if (messageContent.includes("发群消息+")) {
             cacheRoomList.forEach(function (item) {
-                if (item.has(msg.from())) {
-                    item.say(name + "通过小哆转发以下消息：\n" + messageContent.replace("发群消息+", ""))
-                } else {
-                    msg.say(name + "抱歉您不在该【" + item.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
-                }
+                item.has(msg.from()).then(bool => {
+                    if (bool) {
+                        item.say(name + "通过小哆转发以下消息：\n" + messageContent.replace("发群消息+", ""))
+                    } else {
+                        msg.say(name + "抱歉您不在该【" + item.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
+                    }
+                });
             });
             return;
         }
@@ -173,11 +175,13 @@ async function onMessage(msg) {
             const roomKey = arry[0].replace("发群", "");
             const room = cacheRoomKeyList[roomKey];
             if (room) {
-                if (room.has(msg.from())) {
-                    room.say(name + "通过小哆转发以下消息：\n" + messageContent.replace(arry[0] + "+", ""))
-                } else {
-                    msg.say(name + "抱歉您不在该【" + room.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
-                }
+                room.has(msg.from()).then(bool => {
+                    if (bool) {
+                        room.say(name + "通过小哆转发以下消息：\n" + messageContent.replace(arry[0] + "+", ""))
+                    } else {
+                        msg.say(name + "抱歉您不在该【" + room.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
+                    }
+                });
             } else {
                 msg.say(name + "抱歉没找到这个群呀")
             }
