@@ -89,9 +89,9 @@ async function onLogin(user) {
     cacheRoomList.forEach(function (item, index) {
         cacheRoomKeyList[index] = item;
         item.topic().then(function (str) {
+            attr.push("\n");
             attr.push("群" + index);
             attr.push(":" + str);
-            attr.push("\n");
             if (index === cacheRoomList.length - 1) {
                 cacheRoomReplayString = attr.join("");
                 console.log("cacheRoomReplayString==" + cacheRoomReplayString);
