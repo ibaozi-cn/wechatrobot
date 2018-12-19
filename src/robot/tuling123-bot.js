@@ -86,10 +86,11 @@ async function onLogin(user) {
     cacheRoomList = await bot.Room.findAll();
     console.log("cacheRoomList==" + JSON.stringify(cacheRoomList));
     let attr = [];
-    cacheRoomList.forEach(function (item, index) {
+    cacheRoomList.forEach(async function (item, index) {
         cacheRoomKeyList[index] = item;
         attr.push("群" + index);
-        attr.push(":" + item.topic());
+        const topic = await item.topic();
+        attr.push(":" + topic);
         attr.push("\n");
     });
     console.log("cacheRoomKeyList==" + JSON.stringify(cacheRoomKeyList));
@@ -170,10 +171,10 @@ async function onMessage(msg) {
             if (room) {
                 if (room.has(msg.from())) {
                     room.say(name + "通过小哆转发以下消息：\n" + messageContent.replace(arry[0] + "+", ""))
-                }else{
+                } else {
                     msg.say(name + "抱歉您不在该【" + room.topic() + "】群，不能帮您转发，如果需要，请告诉i校长")
                 }
-            }else{
+            } else {
                 msg.say(name + "抱歉没找到这个群呀")
             }
             return;
