@@ -109,7 +109,7 @@ async function onLogin(user) {
         });
     });
     // console.log("cacheRoomKeyList==" + JSON.stringify(cacheRoomKeyList));
-    fs.readFile("./root/wechatrobot/julive-data.json", 'utf-8', (err, data) => {
+    fs.readFile("wechatrobot/julive-data.json", 'utf-8', (err, data) => {
         if (err) {
             console.log(err);
             return;
