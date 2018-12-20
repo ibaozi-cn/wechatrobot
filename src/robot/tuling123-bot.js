@@ -9,16 +9,26 @@ const cacheImageName = [];
 
 const outReplyList = ["小哆退下了", "有事叫我，我走了", "我去休息了，么么哒", "没电了,我去充充电", "时间到了，我要走了，有事call me", "我走了，五星好评哦亲"];
 
-const cacheGroupSendRule = {};
-
+/**
+ * 小组相关缓存 start
+ */
 const cacheGroupSendRequest = {};
-
 let cacheRoomList = [];
-
 const cacheRoomKeyList = {};
-
 let cacheRoomReplayString = "";
-
+/**
+ * 小组相关缓存 end
+ */
+/**
+ * 问答系统相关缓存 start
+ */
+let cacheWikiWakeUpKey = "";
+let cachePersonSendRequest = {};
+let cacheWikiReplayString = "";
+let cacheWikiList = [];
+/**
+ * 问答系统相关缓存 end
+ */
 const {
     config,
     log,
@@ -99,6 +109,25 @@ async function onLogin(user) {
         });
     });
     // console.log("cacheRoomKeyList==" + JSON.stringify(cacheRoomKeyList));
+    fs.readFile("./julive-data.json", 'utf-8', (err, data) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        const content = JSON.parse(data);
+        cacheWikiWakeUpKey = content.name;
+        let attr = [];
+        cacheWikiList = content.wikiList;
+        const lastIndex = cacheWikiList.length - 1;
+        cacheWikiList.forEach(function (item, index) {
+            attr.push("\n");
+            attr.push("问题" + index + ".");
+            attr.push(item.problem);
+            if (index === lastIndex) {
+                cacheWikiReplayString = attr.join("");
+            }
+        })
+    })
 }
 
 function onLogout(user) {
@@ -133,6 +162,41 @@ async function onMessage(msg) {
 
     if (messageContent === "[Send an emoji, view it on mobile]") {
         // await msg.say("");
+        return;
+    }
+
+    if (messageContent === cacheWikiWakeUpKey) {
+        cachePersonSendRequest[name] = true;
+        msg.say(name + "已为您开启WIKI问答");
+        setTimeout(function () {
+            cachePersonSendRequest[name] = false;
+            msg.say(name + "已自动关闭WIKI问答");
+        }, 1000 * 60 * 3);
+        msg.say("已知问题如下：" + cacheWikiReplayString);
+        msg.say("请回复对应编号获取对应答案，如：1");
+        return;
+    }
+
+    if (cachePersonSendRequest[name]) {
+        const problem = cacheWikiList[messageContent];
+        if (problem) {
+            msg.say(problem.desc);
+            const attachment = problem.attachment;
+            if (attachment) {
+                if (attachment.includes(",")) {
+                    const arry = messageContent.split(",");
+                    arry.forEach(data => {
+                        const filebox = FileBox.fromFile('image_cache/' + data);
+                        msg.say(filebox);
+                    })
+                } else {
+                    const filebox = FileBox.fromFile('image_cache/' + attachment);
+                    msg.say(filebox);
+                }
+            }
+        } else {
+            msg.say("抱歉：未找到您的问题");
+        }
         return;
     }
 
