@@ -268,9 +268,9 @@ async function onMessage(msg) {
                     console.log('Save file to: ' + name);
                     file.toFile("image/" + name, true);
                 }
-                const length = cacheImageName.length;
-                const randImage = randUnique(0, length, 10);
-                const imageName = cacheImageName[randImage[2]];
+                const length = cacheImageName.length - 1;
+                const randImage = randUnique(0, length, length);
+                const imageName = cacheImageName[randImage[rd(0,length)]];
                 const filebox = FileBox.fromFile('image_cache/image/' + imageName);
                 if (filebox)
                     msg.say(filebox);
@@ -341,18 +341,18 @@ async function onFriend(friendship) {
         const hello = friendship.hello();
         switch (friendship.type()) {
             case Friendship.Type.Receive:
-                if (util.compare(hello, '爱小哆')) {
-                    logMsg = '自动同意了好友添加请求，口令是： "爱小哆"';
-                    await friendship.accept();
+                // if (util.compare(hello, '爱小哆')) {
+                //     logMsg = '自动同意了好友添加请求，口令是： "爱小哆"';
+                await friendship.accept();
 
-                    // if want to send msg , you need to delay sometimes
-                    await new Promise(r => setTimeout(r, 1000 * 5));
-                    await friendship.contact().say('您好，我叫Ai小哆，有什么可以帮助您的');
-                    await friendship.contact().say('我可以帮您，查天气，查地理，查快递，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，总之您有什么需求尽管提，我也在不断学习哦。么么哒 [亲亲]');
-                    await friendship.contact().say('我还可以做您的群助手，自动欢迎群新成员，把我设置成群管理后，我还能帮您拉人、踢人等，只需您发一个指令');
-                } else {
-                    logMsg = '不允许，因为他发送的消息是：' + friendship.hello()
-                }
+                // if want to send msg , you need to delay sometimes
+                await new Promise(r => setTimeout(r, 1000 * 5));
+                await friendship.contact().say('您好，我叫Ai小哆，有什么可以帮助您的');
+                await friendship.contact().say('我可以帮您，查天气，查地理，查快递，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，总之您有什么需求尽管提，我也在不断学习哦。么么哒 [亲亲]');
+                await friendship.contact().say('我还可以做您的群助手，自动欢迎群新成员，把我设置成群管理后，我还能帮您拉人、踢人等，只需您发一个指令');
+                // } else {
+                //     logMsg = '不允许，因为他发送的消息是：' + friendship.hello()
+                // }
                 break;
 
             case Friendship.Type.Confirm:
@@ -435,4 +435,8 @@ function randUnique(start, end, size) {
 
     // 获取数组从第一个开始到指定个数的下标区间
     return allNums.slice(0, size);
+}
+function rd(n,m){
+    const c = m - n + 1;
+    return Math.floor(Math.random() * c + n);
 }
