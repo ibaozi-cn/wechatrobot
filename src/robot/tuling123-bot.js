@@ -165,6 +165,35 @@ async function onMessage(msg) {
         return;
     }
 
+    if (msg.type() !== Message.Type.Text) {
+        switch (msg.type()) {
+            case Message.Type.Image:
+                const fileName = msg.payload.filename;
+                if (fileName && fileName.endsWith("gif")) {
+                    const file = await msg.toFileBox();
+                    const name = file.name;
+                    console.log('Save file to: ' + name);
+                    file.toFile("image/" + name, true);
+                }
+                const length = cacheImageName.length - 1;
+                const randImage = randUnique(0, length, length);
+                const imageName = cacheImageName[randImage[rd(0, length)]];
+                const filebox = FileBox.fromFile('image_cache/image/' + imageName);
+                if (filebox)
+                    msg.say(filebox);
+                break;
+        }
+        return;
+    }
+
+
+    if (messageContent.includes("合伙吗") || messageContent.includes("你的主人是") || messageContent.includes("你主人是") || messageContent.includes("你爸爸是") || messageContent.includes("你老爸是") || messageContent.includes("你爸是") || messageContent.includes("你的爸爸是")) {
+        await msg.say("想联系我的主人？请长按扫描下方二维码，添加好友哦");
+        const filebox = FileBox.fromFile('image_cache/xiaozhang.jpeg');
+        msg.say(filebox);
+        return;
+    }
+
     if (messageContent === cacheWikiWakeUpKey) {
         cachePersonSendRequest[name] = true;
         msg.say(name + "已为您开启WIKI问答");
@@ -200,12 +229,6 @@ async function onMessage(msg) {
         return;
     }
 
-    if (messageContent.includes("合伙吗") || messageContent.includes("你的主人是") || messageContent.includes("你主人是") || messageContent.includes("你爸爸是") || messageContent.includes("你老爸是") || messageContent.includes("你爸是") || messageContent.includes("你的爸爸是")) {
-        await msg.say("想联系我的主人？请长按扫描下方二维码，添加好友哦");
-        const filebox = FileBox.fromFile('image_cache/xiaozhang.jpeg');
-        msg.say(filebox);
-        return;
-    }
 
     if (messageContent.includes("我要群发") || messageContent.includes("我想群发")) {
         cacheGroupSendRequest[name] = true;
@@ -258,30 +281,15 @@ async function onMessage(msg) {
         return;
     }
 
-    if (msg.type() !== Message.Type.Text) {
-        switch (msg.type()) {
-            case Message.Type.Image:
-                const fileName = msg.payload.filename;
-                if (fileName && fileName.endsWith("gif")) {
-                    const file = await msg.toFileBox();
-                    const name = file.name;
-                    console.log('Save file to: ' + name);
-                    file.toFile("image/" + name, true);
-                }
-                const length = cacheImageName.length - 1;
-                const randImage = randUnique(0, length, length);
-                const imageName = cacheImageName[randImage[rd(0,length)]];
-                const filebox = FileBox.fromFile('image_cache/image/' + imageName);
-                if (filebox)
-                    msg.say(filebox);
-                break;
-        }
-        return;
-    }
 
     const room = msg.room();
 
     if (room) {
+        if (messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚")) {
+            isAutoReplyRoom[room.id] = false;
+            await reply(msg);
+        }
+
         if (isAutoReplyRoom[room.id]) {
             console.log("开启自动回复三分钟");
             await reply(msg);
@@ -290,10 +298,12 @@ async function onMessage(msg) {
         if (messageContent.includes("小哆")) {
             isAutoReplyRoom[room.id] = true;
             setTimeout(function () {
+                if (isAutoReplyRoom[room.id]) {
+                    const index = randUnique(0, outReplyList.length, 1)[0];
+                    room.say(outReplyList[index]);
+                    console.log("关闭自动回复");
+                }
                 isAutoReplyRoom[room.id] = false;
-                const index = randUnique(0, outReplyList.length, 1)[0];
-                room.say(outReplyList[index]);
-                console.log("关闭自动回复");
             }, 1000 * 60 * 3);
             await reply(msg)
         }
@@ -436,7 +446,8 @@ function randUnique(start, end, size) {
     // 获取数组从第一个开始到指定个数的下标区间
     return allNums.slice(0, size);
 }
-function rd(n,m){
+
+function rd(n, m) {
     const c = m - n + 1;
     return Math.floor(Math.random() * c + n);
 }
