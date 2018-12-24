@@ -136,7 +136,7 @@ function startNewWechaty(userKey, msg) {
         console.log(`Scan QR Code to login: ${status}\n ${scanUrl}`);
         // const filebox = FileBox.fromUrl(scanUrl);
         msg.say(scanUrl);
-        msg.say("很抱歉由于微信限制，您只能在电脑端打开上面二维码，然后再用手机微信扫描呢")
+        msg.say("很抱歉由于微信限制，您只能在电脑端打开该连接，然后再用手机微信扫一扫登录就行了")
     });
     bot.on('login', user => {
         cacheUserLoginStatus[userKey] = true;
