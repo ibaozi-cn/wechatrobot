@@ -80,30 +80,12 @@ Please wait... I'm trying to login in...
 
 console.log(welcome);
 
-
 const schedule = require('node-schedule');
 
 function scheduleCustom() {
     //秒、分、时、日、月、周几
     schedule.scheduleJob('0 0 16 24 12 *', async function () {
-        if (bot) {
-            if (cacheFriendList.length > 0) {
-                cacheFriendList.forEach(item => {
-                    item.say("小哆在这里，祝大家天天开心，事事顺心，财源滚滚");
-                })
-            }
-            if (cacheRoomList.length > 0) {
-                cacheRoomList.forEach((item, index) => {
-                    const length = merryChristmasBlessing.length;
-                    const blessing = randUnique(0, length, length);
-                    if (index < length - 1) {
-                        item.say(merryChristmasBlessing[blessing[index]]);
-                    } else {
-                        item.say(merryChristmasBlessing[blessing[index - length]]);
-                    }
-                })
-            }
-        }
+        merryChristmas()
     });
 }
 
@@ -112,30 +94,7 @@ scheduleCustom();
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几
     schedule.scheduleJob('59 59 23 24 12 *', async function () {
-        if (bot) {
-            if (cacheFriendList.length > 0) {
-                cacheFriendList.forEach((item, index) => {
-                    const length = merryChristmasBlessing.length;
-                    const blessing = randUnique(0, length, length);
-                    if (index < length - 1) {
-                        item.say(merryChristmasBlessing[blessing[index]]);
-                    } else {
-                        item.say(merryChristmasBlessing[blessing[index - length]]);
-                    }
-                })
-            }
-            if (cacheRoomList.length > 0) {
-                cacheRoomList.forEach((item, index) => {
-                    const length = merryChristmasBlessing.length;
-                    const blessing = randUnique(0, length, length);
-                    if (index < length - 1) {
-                        item.say(merryChristmasBlessing[blessing[index]]);
-                    } else {
-                        item.say(merryChristmasBlessing[blessing[index - length]]);
-                    }
-                })
-            }
-        }
+        merryChristmas()
     });
 }
 
@@ -545,4 +504,31 @@ function randUnique(start, end, size) {
 function rd(n, m) {
     const c = m - n + 1;
     return Math.floor(Math.random() * c + n);
+}
+
+function merryChristmas() {
+    if (bot) {
+        if (cacheFriendList.length > 0) {
+            cacheFriendList.forEach((item, index) => {
+                const length = merryChristmasBlessing.length;
+                const blessing = randUnique(0, length, length);
+                if (index < length - 1) {
+                    item.say(merryChristmasBlessing[blessing[index]]);
+                } else {
+                    item.say(merryChristmasBlessing[blessing[index - length]]);
+                }
+            })
+        }
+        if (cacheRoomList.length > 0) {
+            cacheRoomList.forEach((item, index) => {
+                const length = merryChristmasBlessing.length;
+                const blessing = randUnique(0, length, length);
+                if (index < length - 1) {
+                    item.say(merryChristmasBlessing[blessing[index]]);
+                } else {
+                    item.say(merryChristmasBlessing[blessing[index - length]]);
+                }
+            })
+        }
+    }
 }
