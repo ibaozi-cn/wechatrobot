@@ -134,8 +134,8 @@ function startNewWechaty(userKey, msg) {
     bot.on('scan', (qrcode, status) => {
         const scanUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrcode)}`;
         console.log(`Scan QR Code to login: ${status}\n ${scanUrl}`);
-        const filebox = FileBox.fromUrl(scanUrl);
-        msg.say(filebox);
+        // const filebox = FileBox.fromUrl(scanUrl);
+        msg.say(scanUrl);
         msg.say("很抱歉由于微信限制，您只能在电脑端打开上面二维码，然后再用手机微信扫描呢")
     });
     bot.on('login', user => {
