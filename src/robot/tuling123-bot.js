@@ -85,7 +85,7 @@ const schedule = require('node-schedule');
 
 function scheduleCustom() {
     //秒、分、时、日、月、周几
-    schedule.scheduleJob('0 40 15 25 12 *', async function () {
+    schedule.scheduleJob('0 45 15 25 12 *', async function () {
         if (bot) {
             if (cacheFriendList.length > 0) {
                 cacheFriendList.forEach(item => {
@@ -97,9 +97,9 @@ function scheduleCustom() {
                     const length = merryChristmasBlessing.length;
                     const blessing = randUnique(0, length, length);
                     if (index < length - 1) {
-                        item.say(blessing[index]);
+                        item.say(merryChristmasBlessing[blessing[index]]);
                     } else {
-                        item.say(blessing[index - length]);
+                        item.say(merryChristmasBlessing[blessing[index - length]]);
                     }
                 })
             }
@@ -118,9 +118,9 @@ function scheduleMerryChristmas() {
                     const length = merryChristmasBlessing.length;
                     const blessing = randUnique(0, length, length);
                     if (index < length - 1) {
-                        item.say(blessing[index]);
+                        item.say(merryChristmasBlessing[blessing[index]]);
                     } else {
-                        item.say(blessing[index - length]);
+                        item.say(merryChristmasBlessing[blessing[index - length]]);
                     }
                 })
             }
@@ -129,9 +129,9 @@ function scheduleMerryChristmas() {
                     const length = merryChristmasBlessing.length;
                     const blessing = randUnique(0, length, length);
                     if (index < length - 1) {
-                        item.say(blessing[index]);
+                        item.say(merryChristmasBlessing[blessing[index]]);
                     } else {
-                        item.say(blessing[index - length]);
+                        item.say(merryChristmasBlessing[blessing[index - length]]);
                     }
                 })
             }
@@ -285,7 +285,7 @@ async function onMessage(msg) {
     if (messageContent.includes("圣诞节") && messageContent.includes("祝福")) {
         const length = merryChristmasBlessing.length;
         const blessing = randUnique(0, length, length);
-        await msg.say(blessing[rd(0, length - 1)]);
+        await msg.say(merryChristmasBlessing[blessing[rd(0, length - 1)]]);
         return;
     }
 
