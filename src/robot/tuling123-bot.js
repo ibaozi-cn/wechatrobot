@@ -212,28 +212,6 @@ async function onMessage(msg) {
         return;
     }
 
-    if (msg.type() !== Message.Type.Text) {
-        switch (msg.type()) {
-            case Message.Type.Image:
-                const fileName = msg.payload.filename;
-                if (fileName && fileName.endsWith("gif")) {
-                    const file = await msg.toFileBox();
-                    const name = file.name;
-                    console.log('Save file to: ' + name);
-                    file.toFile("image/" + name, true);
-                }
-                const length = cacheImageName.length - 1;
-                const randImage = randUnique(0, length, length);
-                const imageName = cacheImageName[randImage[rd(0, length)]];
-                const filebox = FileBox.fromFile('image_cache/image/' + imageName);
-                if (filebox)
-                    msg.say(filebox);
-                break;
-        }
-        return;
-    }
-
-
     if (messageContent.includes("合伙吗") || messageContent.includes("你的主人是") || messageContent.includes("你主人是") || messageContent.includes("你爸爸是") || messageContent.includes("你老爸是") || messageContent.includes("你爸是") || messageContent.includes("你的爸爸是")) {
         await msg.say("想联系我的主人？请长按扫描下方二维码，添加好友哦");
         const filebox = FileBox.fromFile('image_cache/xiaozhang.jpeg');
@@ -338,8 +316,29 @@ async function onMessage(msg) {
 
     const room = msg.room();
 
+    if (msg.type() !== Message.Type.Text && isAutoReplyRoom[room.id]) {
+        switch (msg.type()) {
+            case Message.Type.Image:
+                const fileName = msg.payload.filename;
+                if (fileName && fileName.endsWith("gif")) {
+                    const file = await msg.toFileBox();
+                    const name = file.name;
+                    console.log('Save file to: ' + name);
+                    file.toFile("image/" + name, true);
+                }
+                const length = cacheImageName.length - 1;
+                const randImage = randUnique(0, length, length);
+                const imageName = cacheImageName[randImage[rd(0, length)]];
+                const filebox = FileBox.fromFile('image_cache/image/' + imageName);
+                if (filebox)
+                    msg.say(filebox);
+                break;
+        }
+        return;
+    }
+
     if (room) {
-        if (messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚")) {
+        if (messageContent.includes("不要你了") ||messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚")||messageContent.includes("滚吧")) {
             isAutoReplyRoom[room.id] = false;
             await reply(msg);
             return;
