@@ -155,7 +155,7 @@ function startNewWechaty(userKey, msg) {
 
         const name = msg.from().name();
 
-        if (name === '微信团队') {
+        if (name === '微信团队'||name==="Ai小哆") {
             return;
         }
 
@@ -296,12 +296,14 @@ async function onMessage(msg) {
         startNewWechaty(name, msg);
         msg.say("欢迎体验小哆服务，登录成功您就可以群发祝福短语了。祝福快人一步。请输入指令：帮我群发祝福。");
         msg.say("退出请输入指令：退出登录");
+        return;
     }
 
     if(messageContent.includes("退出登录")){
         if(cacheUserLoginStatus[name]){
             cacheUserBotList[name].stop();
         }
+        return;
     }
 
     if (messageContent === cacheWikiWakeUpKey) {
