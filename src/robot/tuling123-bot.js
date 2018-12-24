@@ -1,13 +1,38 @@
 const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./tuling123");
-const util = require("../utils");
-
 const fs = require('fs');
 
 const cacheImageName = [];
-
 const outReplyList = ["小哆退下了", "有事叫我，我走了", "我去休息了，么么哒", "没电了,我去充充电", "时间到了，我要走了，有事call me", "我走了，五星好评哦亲"];
+
+const merryChristmasBlessing = [
+    "圣诞节踮着脚尖，轻快地走来，请迎着她轻轻地，轻轻地说出你心中的期待！",
+    "圣诞节到了也，你有没有在床头挂起臭袜子哦，圣诞老公公会把我最好的礼物丢进去的，圣诞快乐！",
+    "圣诞快乐，并不是只在特别的日子才会想起你，但是圣诞节的时候，一定会让你收到我的祝福。",
+    "白雪飘飘，鹿铃霄霄，甜蜜的平安夜又来到，小手摆摆，舞姿曼曼，快乐的圣诞节日多美好。",
+    "惦记着往日的笑声忆取那温馨的爱抚愿老师所有的日子洋溢着欢欣的喜悦圣诞快乐、年年如意。",
+    "圣诞，有圣诞老人，有你也有我，在这日子里，我想对你说，世上你最美，在今生我最爱你！",
+    "平安夜，祝福你！我的朋友，温磬平安！欢乐时，我和你一道分享；不开心时，我和你一起承担！",
+    "奉上一颗祝福的心，在这个特别的日子里，愿幸福，如意，快乐，鲜花，一切美好的祝愿与你同在。圣诞快乐！",
+    "钟声是我的问候，歌声是我的祝福，雪花是我的贺卡，美酒是我的飞吻，轻风是我的拥抱，快乐是我的礼物！",
+    "在经过了一段长长的冷寂后，圣诞节正向我们走来，也许她最珍贵的就是让人们摆脱寒冬，重归温馨的记忆。",
+    "如果说圣诞老人要我只许要一个礼物，那么我会对他说：“一个正在看这则短信的人做我的礼物，生世世陪伴我！”",
+    "每一次的感触，每一份的收获，每一秒的流过，每一次节日的问候，都代表着对朋友们的思念与祝福——-圣诞节快乐！",
+    "嗨！你怎么还在这呢！你知道你的重要性吗？没了你，谁拉着圣诞老公公去给大家送礼物啊！呵呵，圣诞快乐！",
+    "我想在你最高兴时说出我的心里话，浪漫的圣诞夜里机会来了，你高兴得像头小猪，其实你生气时更像，哈哈。圣诞快乐！",
+    "生活是一本百科全书，社会是一张电子地图，希望你在社会上找到自己的方向，在生活中感悟自己的理想。年轻人，圣诞节愉快。",
+    "快乐圣诞！什么使圣诞快乐？不是那快乐的阳光，也不是鸟儿的啁啾；那是愉快的念头和幸福的笑容，是温馨慈爱的问候。",
+    "恰有这样一天，雪花轻轻飘落，快乐满溢人间，圣诞老人带着礼物携着祝福而来，轻轻的问候一句：圣诞快乐，生命因此而美好。",
+    "又是圣诞了，还记得我们一起度过的浪漫的白色平安夜吗？我的祝福就是平安夜的雪片，落在你的身上，融进你的心里。圣诞快乐！",
+    "浪漫一身很冻人，意乱情迷狂热心。毕业一别多少春，天涯海角不相邻。偶有同学要结婚，多有错过喜鹊门。平安夜前祝福深，一生平安美善真！",
+    "又到圣诞节，分别已几年；梦中想起你，醒来对愁眠；独坐陋室内，思念千里外；奈何相思苦，短信表祝福：时时开心在，刻刻笑开怀！",
+    "农场里牛妈妈问鸡妈妈：为什么我生小牛累的要命，你生完蛋却还咯咯的叫得欢呢？鸡妈妈答：因为生蛋快乐啊！哈哈，也祝你圣诞（生蛋）快乐！",
+    "亲爱的，圣诞快乐！只想对你说：一句寒暖，一线相喧；一句叮咛，一笺相传；一份相思，一心相盼；一份爱意，一生相恋，那都是我思念你。",
+    "在这个神圣的日子里，诞生了一条史上难得一见的温馨节日祝福。只因为特别的问候要在特别的日子，送给特别的你！朋友：祝你圣诞节快乐！",
+    "圣诞新年串一串，开心快乐永不散；好运幸福串一串，家庭和睦财不散；朋友祝福串一串，友谊常青情不散；发条短信串一串，保你节日祝福永不断。",
+    "音乐卡是我的挂念，钟声是我的问候，歌声是我的祝福，雪花是我的贺卡，美酒是我的飞吻，清风是我的拥抱，快乐是我的礼物！平安夜快乐！"
+];
 
 /**
  * 小组相关缓存 start
@@ -29,6 +54,7 @@ let cacheWikiList = [];
 /**
  * 问答系统相关缓存 end
  */
+let cacheFriendList = [];
 const {
     config,
     log,
@@ -53,6 +79,67 @@ Please wait... I'm trying to login in...
 `;
 
 console.log(welcome);
+
+
+const schedule = require('node-schedule');
+
+function scheduleCustom() {
+    //秒、分、时、日、月、周几
+    schedule.scheduleJob('0 40 15 25 12 *', async function () {
+        if (bot) {
+            if (cacheFriendList.length > 0) {
+                cacheFriendList.forEach(item => {
+                    item.say("小哆在这里，祝大家天天开心，事事顺心，财源滚滚");
+                })
+            }
+            if (cacheRoomList.length > 0) {
+                cacheRoomList.forEach((item, index) => {
+                    const length = merryChristmasBlessing.length;
+                    const blessing = randUnique(0, length, length);
+                    if (index < length - 1) {
+                        item.say(blessing[index]);
+                    } else {
+                        item.say(blessing[index - length]);
+                    }
+                })
+            }
+        }
+    });
+}
+
+scheduleCustom();
+
+function scheduleMerryChristmas() {
+    //秒、分、时、日、月、周几
+    schedule.scheduleJob('59 59 23 24 12 *', async function () {
+        if (bot) {
+            if (cacheFriendList.length > 0) {
+                cacheFriendList.forEach((item, index) => {
+                    const length = merryChristmasBlessing.length;
+                    const blessing = randUnique(0, length, length);
+                    if (index < length - 1) {
+                        item.say(blessing[index]);
+                    } else {
+                        item.say(blessing[index - length]);
+                    }
+                })
+            }
+            if (cacheRoomList.length > 0) {
+                cacheRoomList.forEach((item, index) => {
+                    const length = merryChristmasBlessing.length;
+                    const blessing = randUnique(0, length, length);
+                    if (index < length - 1) {
+                        item.say(blessing[index]);
+                    } else {
+                        item.say(blessing[index - length]);
+                    }
+                })
+            }
+        }
+    });
+}
+
+scheduleMerryChristmas();
 
 /**
  *
@@ -127,7 +214,8 @@ async function onLogin(user) {
                 cacheWikiReplayString = attr.join("");
             }
         })
-    })
+    });
+    cacheFriendList = await bot.Contact.findAll();
 }
 
 function onLogout(user) {
