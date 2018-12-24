@@ -282,7 +282,7 @@ async function onMessage(msg) {
         return;
     }
 
-    if (messageContent.includes("圣诞节") && messageContent.includes("祝福")) {
+    if (messageContent.includes("圣诞节") && (messageContent.includes("祝福") || messageContent.includes("快乐"))) {
         const length = merryChristmasBlessing.length;
         const blessing = randUnique(0, length, length);
         await msg.say(merryChristmasBlessing[blessing[rd(0, length - 1)]]);
