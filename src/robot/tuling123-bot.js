@@ -117,79 +117,6 @@ const isAutoReplyRoom = {};
 bot.start()
     .catch(console.error);
 
-const cacheUserLoginStatus = {};
-const cacheUserBotList = {};
-
-function startNewWechaty(userKey, msg) {
-    if (cacheUserLoginStatus[userKey]) {
-        msg.say("您已经登录过了，不需要重复登录");
-        return;
-    }
-    const bot = new Wechaty(
-        {
-            name: userKey
-        }
-    );
-    cacheUserBotList[userKey] = bot;
-    bot.on('scan', (qrcode, status) => {
-        const scanUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrcode)}`;
-        console.log(`Scan QR Code to login: ${status}\n ${scanUrl}`);
-        // const filebox = FileBox.fromUrl(scanUrl);
-        msg.say(scanUrl);
-        msg.say("很抱歉由于微信限制，您只能在电脑端打开该连接，然后再用手机微信扫一扫登录就行了")
-    });
-    bot.on('login', user => {
-        cacheUserLoginStatus[userKey] = true;
-        console.log(`${user} login`);
-        msg.say("您已经登录成功，快去体验吧。目前您已具备自动回复功能，祝您圣诞节快乐哦")
-    });
-    bot.on('message', async msg => {
-        console.log(`消息: ${msg}`);
-
-        const messageContent = msg.text();
-        console.log(`消息内容: ${messageContent}`);
-
-        if (msg.self()) {
-            return;
-        }
-
-        const name = msg.from().name();
-
-        if (name === '微信团队' || name === "Ai小哆") {
-            return;
-        }
-
-        if (messageContent.includes("开启了朋友验证")) {
-            console.log("不是好友了已经");
-            return;
-        }
-
-        if (messageContent === "[Send an emoji, view it on mobile]") {
-            // await msg.say("");
-            return;
-        }
-        if (messageContent.includes("圣诞节") && (messageContent.includes("祝福") || messageContent.includes("快乐"))) {
-            const length = merryChristmasBlessing.length;
-            const blessing = randUnique(0, length, length);
-            await msg.say(merryChristmasBlessing[blessing[rd(0, length - 1)]]);
-            return;
-        }
-        if (messageContent.includes("帮我群发祝福")) {
-            const friendList = await bot.Contact.findAll();
-            const roomList = await bot.Room.findAll();
-            merryChristmas(friendList, roomList);
-            return;
-        }
-        await reply(msg)
-    });
-    bot.on('logout', user => {
-        console.log(`${user} login out`);
-        cacheUserLoginStatus[userKey] = false;
-    });
-    bot.start().catch(console.error);
-}
-
-
 function onScan(qrcode, status) {
     qrTerm.generate(qrcode, {small: true});  // show qrcode on console
     const scanUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrcode)}`;
@@ -292,20 +219,6 @@ async function onMessage(msg) {
         return;
     }
 
-    if (messageContent.includes("登录") || messageContent.includes("登陆")) {
-        startNewWechaty(name, msg);
-        msg.say("欢迎体验小哆服务，登录成功您就可以群发祝福短语了。祝福快人一步。\n请输入指令：帮我群发祝福。\n退出请输入指令：退出登录");
-        return;
-    }
-
-    if (messageContent.includes("退出登录")) {
-        if (cacheUserLoginStatus[name]) {
-            cacheUserBotList[name].stop();
-            msg.say("退出成功了哦，欢迎下次体验呢");
-        }
-        return;
-    }
-
     if (messageContent === cacheWikiWakeUpKey) {
         cachePersonSendRequest[name] = true;
         msg.say(name + "已为您开启WIKI问答");
@@ -340,7 +253,6 @@ async function onMessage(msg) {
         }
         return;
     }
-
 
     if (messageContent.includes("我要群发") || messageContent.includes("我想群发")) {
         cacheGroupSendRequest[name] = true;
