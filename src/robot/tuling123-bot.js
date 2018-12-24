@@ -316,7 +316,12 @@ async function onMessage(msg) {
 
     const room = msg.room();
 
-    if (msg.type() !== Message.Type.Text && isAutoReplyRoom[room.id]) {
+    if (msg.type() !== Message.Type.Text) {
+        if (room) {
+            if (!isAutoReplyRoom[room.id]) {
+                return;
+            }
+        }
         switch (msg.type()) {
             case Message.Type.Image:
                 const fileName = msg.payload.filename;
@@ -338,7 +343,7 @@ async function onMessage(msg) {
     }
 
     if (room) {
-        if (messageContent.includes("不要你了") ||messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚")||messageContent.includes("滚吧")) {
+        if (messageContent.includes("不要你了") || messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚") || messageContent.includes("滚吧")) {
             isAutoReplyRoom[room.id] = false;
             await reply(msg);
             return;
