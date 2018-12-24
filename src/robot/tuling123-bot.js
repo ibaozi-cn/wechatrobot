@@ -82,19 +82,10 @@ console.log(welcome);
 
 const schedule = require('node-schedule');
 
-function scheduleCustom() {
-    //秒、分、时、日、月、周几
-    schedule.scheduleJob('0 0 16 24 12 *', async function () {
-        merryChristmas()
-    });
-}
-
-scheduleCustom();
-
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几
     schedule.scheduleJob('59 59 23 24 12 *', async function () {
-        merryChristmas()
+        merryChristmas(cacheFriendList, cacheRoomList)
     });
 }
 
@@ -126,8 +117,83 @@ const isAutoReplyRoom = {};
 bot.start()
     .catch(console.error);
 
+const cacheUserLoginStatus = {};
+const cacheUserBotList = {};
+
+function startNewWechaty(userKey, msg) {
+    if (cacheUserLoginStatus[userKey]) {
+        msg.say("您已经登录过了，不需要重复登录");
+        return;
+    }
+    const bot = new Wechaty(
+        {
+            name: userKey
+        }
+    );
+    cacheUserBotList[userKey] = bot;
+    bot.on('scan', (qrcode, status) => {
+        const scanUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrcode)}`;
+        console.log(`Scan QR Code to login: ${status}\n ${scanUrl}`);
+        const filebox = FileBox.fromUrl(scanUrl);
+        msg.say(filebox);
+        msg.say("很抱歉由于微信限制，您只能在电脑端打开上面二维码，然后再用手机微信扫描呢")
+    });
+    bot.on('login', user => {
+        cacheUserLoginStatus[userKey] = true;
+        console.log(`${user} login`);
+        msg.say("您已经登录成功，快去体验吧。目前您已具备自动回复功能，祝您圣诞节快乐哦")
+    });
+    bot.on('message', async msg => {
+        console.log(`消息: ${msg}`);
+
+        const messageContent = msg.text();
+        console.log(`消息内容: ${messageContent}`);
+
+        if (msg.self()) {
+            return;
+        }
+
+        const name = msg.from().name();
+
+        if (name === '微信团队') {
+            return;
+        }
+
+        if (messageContent.includes("开启了朋友验证")) {
+            console.log("不是好友了已经");
+            return;
+        }
+
+        if (messageContent === "[Send an emoji, view it on mobile]") {
+            // await msg.say("");
+            return;
+        }
+        if (messageContent.includes("圣诞节") && (messageContent.includes("祝福") || messageContent.includes("快乐"))) {
+            const length = merryChristmasBlessing.length;
+            const blessing = randUnique(0, length, length);
+            await msg.say(merryChristmasBlessing[blessing[rd(0, length - 1)]]);
+            return;
+        }
+        if (messageContent.includes("帮我群发祝福")) {
+            const friendList = await bot.Contact.findAll();
+            const roomList = await bot.Room.findAll();
+            merryChristmas(friendList, roomList);
+            return;
+        }
+        await reply(msg)
+    });
+    bot.on('logout', user => {
+        console.log(`${user} login out`);
+        cacheUserLoginStatus[userKey] = false;
+    });
+    bot.start().catch(console.error);
+}
+
+
 function onScan(qrcode, status) {
-    qrTerm.generate(qrcode, {small: true})  // show qrcode on console
+    qrTerm.generate(qrcode, {small: true});  // show qrcode on console
+    const scanUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrcode)}`;
+    console.log(`Scan QR Code to login: ${status}\n ${scanUrl}`);
 }
 
 async function onLogin(user) {
@@ -224,6 +290,18 @@ async function onMessage(msg) {
         const blessing = randUnique(0, length, length);
         await msg.say(merryChristmasBlessing[blessing[rd(0, length - 1)]]);
         return;
+    }
+
+    if (messageContent.includes("登录") || messageContent.includes("登陆")) {
+        startNewWechaty(name, msg);
+        msg.say("欢迎体验小哆服务，登录成功您就可以群发祝福短语了。祝福快人一步。请输入指令：帮我群发祝福。");
+        msg.say("退出请输入指令：退出登录");
+    }
+
+    if(messageContent.includes("退出登录")){
+        if(cacheUserLoginStatus[name]){
+            cacheUserBotList[name].stop();
+        }
     }
 
     if (messageContent === cacheWikiWakeUpKey) {
@@ -473,7 +551,7 @@ async function onRoomJoin(room, inviteeList, inviter) {
         await room.say(rule, inviteeList[0]);
         if (topic === "小哆智能语音") {
             await room.say('我可以帮您，查天气，查地理，查快递，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，我一直在不断学习哦。么么哒 [亲亲]');
-            await room.say(`再次欢迎大家成为小哆第一批体验用户,有任何想法和需求尽管提哦。有事喊我的名字'小哆'，我就会主动和你聊天哦。`);
+            await room.say(`我还可以做您的群助手，多群转发、单群转发、自动欢迎新成员、自动发送群规、把我设置成群管理后，我还能帮您拉人、踢人等，只需您发一个指令`);
         }
     }
 }
@@ -511,10 +589,10 @@ function rd(n, m) {
     return Math.floor(Math.random() * c + n);
 }
 
-function merryChristmas() {
+function merryChristmas(friendList, roomList) {
     if (bot) {
-        if (cacheFriendList.length > 0) {
-            cacheFriendList.forEach((item, index) => {
+        if (friendList.length > 0) {
+            friendList.forEach((item, index) => {
                 const length = merryChristmasBlessing.length;
                 const blessing = randUnique(0, length, length);
                 if (index < length - 1) {
@@ -524,8 +602,8 @@ function merryChristmas() {
                 }
             })
         }
-        if (cacheRoomList.length > 0) {
-            cacheRoomList.forEach((item, index) => {
+        if (roomList.length > 0) {
+            roomList.forEach((item, index) => {
                 const length = merryChristmasBlessing.length;
                 const blessing = randUnique(0, length, length);
                 if (index < length - 1) {
