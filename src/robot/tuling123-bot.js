@@ -302,6 +302,7 @@ async function onMessage(msg) {
     if(messageContent.includes("退出登录")){
         if(cacheUserLoginStatus[name]){
             cacheUserBotList[name].stop();
+            msg.say("退出成功了哦，欢迎下次体验呢");
         }
         return;
     }
