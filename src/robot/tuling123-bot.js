@@ -85,7 +85,7 @@ const schedule = require('node-schedule');
 
 function scheduleCustom() {
     //秒、分、时、日、月、周几
-    schedule.scheduleJob('00 50 15 24 12 *', async function () {
+    schedule.scheduleJob('0 0 16 24 12 *', async function () {
         if (bot) {
             if (cacheFriendList.length > 0) {
                 cacheFriendList.forEach(item => {
