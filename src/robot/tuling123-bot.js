@@ -342,6 +342,7 @@ async function onMessage(msg) {
         if (messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚")) {
             isAutoReplyRoom[room.id] = false;
             await reply(msg);
+            return;
         }
 
         if (isAutoReplyRoom[room.id]) {
