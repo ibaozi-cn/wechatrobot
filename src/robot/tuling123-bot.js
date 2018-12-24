@@ -282,6 +282,13 @@ async function onMessage(msg) {
         return;
     }
 
+    if (messageContent.includes("圣诞节") && messageContent.includes("祝福")) {
+        const length = merryChristmasBlessing.length;
+        const blessing = randUnique(0, length, length);
+        await msg.say(blessing[rd(0, length - 1)]);
+        return;
+    }
+
     if (messageContent === cacheWikiWakeUpKey) {
         cachePersonSendRequest[name] = true;
         msg.say(name + "已为您开启WIKI问答");
