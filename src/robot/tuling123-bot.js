@@ -330,9 +330,19 @@ async function onMessage(msg) {
                 if (filebox)
                     msg.say(filebox);
                 break;
+            case Message.Type.Attachment:
+                const file = await msg.toFileBox();
+                const name = file.name;
+                console.log('Save file to: ' + name);
+                file.toFile("image_cache/" + name, true);
+                const fileboxs = FileBox.fromFile('image_cache/' + name);
+                if (filebox)
+                    msg.say(fileboxs);
+                break;
         }
         return;
     }
+
 
     if (room) {
         if (messageContent.includes("不要你了") || messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚") || messageContent.includes("滚吧")) {
