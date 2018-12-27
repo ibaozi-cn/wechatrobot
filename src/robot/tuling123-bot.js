@@ -330,15 +330,15 @@ async function onMessage(msg) {
                 if (filebox)
                     msg.say(filebox);
                 break;
-            case Message.Type.Attachment:
-                const file = await msg.toFileBox();
-                const name = file.name;
-                console.log('Save file to: ' + name);
-                file.toFile("image_cache/" + name, true);
-                const fileboxs = FileBox.fromFile('image_cache/' + name);
-                if (fileboxs)
-                    msg.say(fileboxs);
-                break;
+            // case Message.Type.Attachment:
+            //     const file = await msg.toFileBox();
+            //     const name = file.name;
+            //     console.log('Save file to: ' + name);
+            //     file.toFile("image_cache/" + name, true);
+            //     const fileboxs = FileBox.fromFile('image_cache/' + name);
+            //     if (fileboxs)
+            //         msg.say(fileboxs);
+            //     break;
         }
         return;
     }
