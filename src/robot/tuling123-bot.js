@@ -336,7 +336,7 @@ async function onMessage(msg) {
                 console.log('Save file to: ' + name);
                 file.toFile("image_cache/" + name, true);
                 const fileboxs = FileBox.fromFile('image_cache/' + name);
-                if (filebox)
+                if (fileboxs)
                     msg.say(fileboxs);
                 break;
         }
