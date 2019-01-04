@@ -257,6 +257,7 @@ async function onMessage(msg) {
                         cacheWeatherSubscribeList.push(name);
                     }
                     msg.say("已为您设置好天气订阅");
+                    cacheWeatherSendRequest[name] = false;
                 } else {
                     msg.say("抱歉您输入有误，请输入：8点或者9点");
                 }
