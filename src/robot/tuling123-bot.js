@@ -66,10 +66,10 @@ let cacheWikiReplayString = "";
 let cacheWikiList = [];
 
 //天气订阅缓存
-let cacheWeatherSubscribeList = [];
 let cacheWeatherSendRequest = {};
 let cacheWeatherCity = {};
 let cacheWeatherTime = {};
+let cacheWeatherJsonData = {};
 
 //缓存好友列表
 let cacheFriendList = [];
@@ -104,7 +104,7 @@ const schedule = require('node-schedule');
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
     schedule.scheduleJob('0 0 * * * *', async function () {
-        cacheWeatherSubscribeList.forEach(async item => {
+        cacheWeatherJsonData.names.forEach(async item => {
             const myDate = new Date();
             const hours = myDate.getHours();
             if (hours == cacheWeatherTime[item]) {
@@ -205,6 +205,20 @@ async function onLogin(user) {
             }
         })
     });
+    fs.readFile("wechatrobot/weather-subcribe.json", "utf-8", (err, data) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        cacheWeatherJsonData = JSON.parse(data);
+        console.log("cacheWeatherJsonData===" + JSON.stringify(cacheWeatherJsonData));
+        cacheWeatherJsonData.list.forEach(item => {
+            cacheWeatherCity[item.name] = item.city;
+            cacheWeatherTime[item.name] = item.time;
+        });
+        console.log("cacheWeatherCity===" + JSON.stringify(cacheWeatherCity));
+        console.log("cacheWeatherTime===" + JSON.stringify(cacheWeatherTime));
+    });
     cacheFriendList = await bot.Contact.findAll();
 }
 
@@ -274,11 +288,25 @@ async function onMessage(msg) {
                 const time = array[0];
                 if (Data.isTimeExsit(time)) {
                     cacheWeatherTime[name] = time;
-                    if (cacheWeatherSubscribeList.indexOf(name) === -1) {
-                        cacheWeatherSubscribeList.push(name);
-                    }
                     msg.say("已为您设置好天气订阅");
                     cacheWeatherSendRequest[name] = false;
+                    if (cacheWeatherJsonData.names.indexOf(name) == -1) {
+                        cacheWeatherJsonData.names.push(name);
+                        cacheWeatherJsonData.list.push({
+                            name: name,
+                            city: cacheWeatherCity[name],
+                            time: cacheWeatherTime[name]
+                        });
+                        fs.writeFile("wechatrobot/weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                console.log("JSON saved to " + "wechatrobot/weather-subcribe.json")
+                            }
+                        })
+                    } else {
+                        console.log(name + "已存在")
+                    }
                 } else {
                     msg.say("抱歉您输入有误，请输入：8点或者9点");
                 }
@@ -296,9 +324,21 @@ async function onMessage(msg) {
         return;
     }
 
-    if (cacheWeatherSubscribeList.indexOf(name) != -1) {
+    if (cacheWeatherJsonData.names.indexOf(name) != -1) {
         if (cancelSubscribeWeatherKeys.indexOf(messageContent) != -1) {
-            delete cacheWeatherSubscribeList[cacheWeatherSubscribeList.indexOf(name)];
+            delete cacheWeatherJsonData.names[cacheWeatherJsonData.names.indexOf(name)];
+            cacheWeatherJsonData.forEach(item=>{
+                if(item.name==name){
+                    delete item
+                }
+            });
+            fs.writeFile("wechatrobot/weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log("JSON saved to " + "wechatrobot/weather-subcribe.json")
+                }
+            });
             msg.say("恭喜您已取消订阅");
             return;
         }
