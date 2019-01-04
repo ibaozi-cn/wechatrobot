@@ -104,26 +104,27 @@ const schedule = require('node-schedule');
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
     schedule.scheduleJob('0 * * * * *', async function () {
-        cacheWeatherJsonData.names.forEach(async item => {
-            const myDate = new Date();
-            const hours = myDate.getHours();
-            if (hours == cacheWeatherTime[item]) {
-                cacheFriendList.forEach(async friend => {
-                    const name = friend.name();
-                    if (name == item) {
-                        const text = "查询" + cacheWeatherCity[name] + "天气";
-                        console.log("start schedule " + text);
-                        const {text: reply} = await tuling.ask(text, {
-                            userid: friend
-                        });
-                        await friend.say(reply);
-                        await friend.say("如果需要取消订阅，请回复如下内容，自己拷贝哦");
-                        const random = rd(0, cancelSubscribeWeatherKeys.length - 1);
-                        await friend.say(cancelSubscribeWeatherKeys[random]);
-                    }
-                });
-            }
-        })
+        if (cacheWeatherJsonData.names)
+            cacheWeatherJsonData.names.forEach(async item => {
+                const myDate = new Date();
+                const hours = myDate.getHours();
+                if (hours == cacheWeatherTime[item]) {
+                    cacheFriendList.forEach(async friend => {
+                        const name = friend.name();
+                        if (name == item) {
+                            const text = "查询" + cacheWeatherCity[name] + "天气";
+                            console.log("start schedule " + text);
+                            const {text: reply} = await tuling.ask(text, {
+                                userid: friend
+                            });
+                            await friend.say(reply);
+                            await friend.say("如果需要取消订阅，请回复如下内容，自己拷贝哦");
+                            const random = rd(0, cancelSubscribeWeatherKeys.length - 1);
+                            await friend.say(cancelSubscribeWeatherKeys[random]);
+                        }
+                    });
+                }
+            })
     });
 }
 
@@ -327,8 +328,8 @@ async function onMessage(msg) {
     if (cacheWeatherJsonData.names.indexOf(name) != -1) {
         if (cancelSubscribeWeatherKeys.indexOf(messageContent) != -1) {
             delete cacheWeatherJsonData.names[cacheWeatherJsonData.names.indexOf(name)];
-            cacheWeatherJsonData.forEach(item=>{
-                if(item.name==name){
+            cacheWeatherJsonData.list.forEach(item => {
+                if (item.name == name) {
                     delete item
                 }
             });
