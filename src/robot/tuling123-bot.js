@@ -325,25 +325,26 @@ async function onMessage(msg) {
         return;
     }
 
-    if (cacheWeatherJsonData.names.indexOf(name) != -1) {
-        if (cancelSubscribeWeatherKeys.indexOf(messageContent) != -1) {
-            delete cacheWeatherJsonData.names[cacheWeatherJsonData.names.indexOf(name)];
-            cacheWeatherJsonData.list.forEach(item => {
-                if (item.name == name) {
-                    delete item
-                }
-            });
-            fs.writeFile("wechatrobot/weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
-                if (err) {
-                    console.log(err);
-                } else {
-                    console.log("JSON saved to " + "wechatrobot/weather-subcribe.json")
-                }
-            });
-            msg.say("恭喜您已取消订阅");
-            return;
+    if (cacheWeatherJsonData.names)
+        if (cacheWeatherJsonData.names.indexOf(name) != -1) {
+            if (cancelSubscribeWeatherKeys.indexOf(messageContent) != -1) {
+                delete cacheWeatherJsonData.names[cacheWeatherJsonData.names.indexOf(name)];
+                cacheWeatherJsonData.list.forEach((item,index) => {
+                    if (item.name == name) {
+                        delete cacheWeatherJsonData.list[index]
+                    }
+                });
+                fs.writeFile("wechatrobot/weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log("JSON saved to " + "wechatrobot/weather-subcribe.json")
+                    }
+                });
+                msg.say("恭喜您已取消订阅");
+                return;
+            }
         }
-    }
 
     if (messageContent === cacheWikiWakeUpKey) {
         cachePersonSendRequest[name] = true;
