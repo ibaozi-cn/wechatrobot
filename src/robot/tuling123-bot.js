@@ -206,7 +206,7 @@ async function onLogin(user) {
             }
         })
     });
-    fs.readFile("wechatrobot/weather-subcribe.json", "utf-8", (err, data) => {
+    fs.readFile("/weather-subcribe.json", "utf-8", (err, data) => {
         if (err) {
             console.log(err);
             return;
@@ -298,11 +298,11 @@ async function onMessage(msg) {
                             city: cacheWeatherCity[name],
                             time: cacheWeatherTime[name]
                         });
-                        fs.writeFile("wechatrobot/weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
+                        fs.writeFile("/weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
                             if (err) {
                                 console.log(err);
                             } else {
-                                console.log("JSON saved to " + "wechatrobot/weather-subcribe.json")
+                                console.log("JSON saved to " + "/weather-subcribe.json")
                             }
                         })
                     } else {
@@ -334,11 +334,11 @@ async function onMessage(msg) {
                         delete cacheWeatherJsonData.list[index]
                     }
                 });
-                fs.writeFile("wechatrobot/weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
+                fs.writeFile("/weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
                     if (err) {
                         console.log(err);
                     } else {
-                        console.log("JSON saved to " + "wechatrobot/weather-subcribe.json")
+                        console.log("JSON saved to " + "/weather-subcribe.json")
                     }
                 });
                 msg.say("恭喜您已取消订阅");
