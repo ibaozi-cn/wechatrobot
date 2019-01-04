@@ -87,21 +87,26 @@ const schedule = require('node-schedule');
 
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
-    schedule.scheduleJob('0 0 * * * *', async function () {
+    schedule.scheduleJob('0 * * * * *', async function () {
         console.log("start schedule");
         cacheWeatherSubscribeList.forEach(async item => {
             const myDate = new Date();
             const hours = myDate.getHours();
-            if (hours === cacheWeatherTime[item]) {
+            console.log("start schedule" + hours);
+            console.log("start schedule" + cacheWeatherTime[item]);
+            // if (hours === cacheWeatherTime[item]) {
+                console.log("start schedule find");
                 bot.Contact.find(item).then(async data => {
+                    console.log("start schedule find end "+ data.name());
                     const text = "查询" + cacheWeatherCity[name] + "天气";
+                    console.log("start schedule "+ text);
                     const {text: reply} = await tuling.ask(text, {
                         userid: data
                     });
                     await data.say(reply);
                 });
 
-            }
+            // }
         })
     });
 }
