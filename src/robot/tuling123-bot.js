@@ -69,6 +69,7 @@ let cacheWikiList = [];
 let cacheWeatherSendRequest = {};
 let cacheWeatherCity = {};
 let cacheWeatherTime = {};
+let cacheWeatherIsSend = {};
 let cacheWeatherJsonData = {};
 
 //缓存好友列表
@@ -106,6 +107,7 @@ function scheduleMerryChristmas() {
     schedule.scheduleJob('0 * * * * *', async function () {
         if (cacheWeatherJsonData.names)
             cacheWeatherJsonData.names.forEach(async item => {
+                if (!cacheWeatherIsSend[item]) return;
                 const myDate = new Date();
                 const hours = myDate.getHours();
                 if (hours == cacheWeatherTime[item]) {
@@ -216,11 +218,24 @@ async function onLogin(user) {
         cacheWeatherJsonData.list.forEach(item => {
             cacheWeatherCity[item.name] = item.city;
             cacheWeatherTime[item.name] = item.time;
+            cacheWeatherIsSend[item.name] = item.isSend;
         });
         console.log("cacheWeatherCity===" + JSON.stringify(cacheWeatherCity));
         console.log("cacheWeatherTime===" + JSON.stringify(cacheWeatherTime));
+        console.log("cacheWeatherIsSend===" + JSON.stringify(cacheWeatherIsSend));
     });
     cacheFriendList = await bot.Contact.findAll();
+}
+
+
+function updateWeatherJson() {
+    fs.writeFile("weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("JSON saved to " + "weather-subcribe.json")
+        }
+    })
 }
 
 function onLogout(user) {
@@ -296,18 +311,21 @@ async function onMessage(msg) {
                         cacheWeatherJsonData.list.push({
                             name: name,
                             city: cacheWeatherCity[name],
-                            time: cacheWeatherTime[name]
+                            time: cacheWeatherTime[name],
+                            isSend: true
                         });
-                        fs.writeFile("weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                console.log("JSON saved to " + "weather-subcribe.json")
-                            }
-                        })
                     } else {
+                        cacheWeatherJsonData.list.forEach((item, index) => {
+                            if (item.name == name) {
+                                cacheWeatherJsonData.list[index].city = cacheWeatherCity[name];
+                                cacheWeatherJsonData.list[index].time = cacheWeatherTime[name];
+                                cacheWeatherJsonData.list[index].isSend = true;
+                            }
+                        });
                         console.log(name + "已存在")
                     }
+                    cacheWeatherIsSend[name] = true;
+                    updateWeatherJson();
                 } else {
                     msg.say("抱歉您输入有误，请输入：8点或者9点");
                 }
@@ -328,19 +346,13 @@ async function onMessage(msg) {
     if (cacheWeatherJsonData.names)
         if (cacheWeatherJsonData.names.indexOf(name) != -1) {
             if (cancelSubscribeWeatherKeys.indexOf(messageContent) != -1) {
-                delete cacheWeatherJsonData.names[cacheWeatherJsonData.names.indexOf(name)];
-                cacheWeatherJsonData.list.forEach((item,index) => {
+                cacheWeatherJsonData.list.forEach((item, index) => {
                     if (item.name == name) {
-                        delete cacheWeatherJsonData.list[index]
+                        cacheWeatherJsonData.list[index].isSend = false;
                     }
                 });
-                fs.writeFile("weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log("JSON saved to " + "weather-subcribe.json")
-                    }
-                });
+                cacheWeatherIsSend[name] = false;
+                updateWeatherJson();
                 msg.say("恭喜您已取消订阅");
                 return;
             }
