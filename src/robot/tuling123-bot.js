@@ -1,3 +1,5 @@
+const Data = require('./city-data');
+
 const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./tuling123");
@@ -34,27 +36,28 @@ const merryChristmasBlessing = [
     "音乐卡是我的挂念，钟声是我的问候，歌声是我的祝福，雪花是我的贺卡，美酒是我的飞吻，清风是我的拥抱，快乐是我的礼物！平安夜快乐！"
 ];
 
-/**
- * 小组相关缓存 start
- */
+
+//小组相关缓存
 const cacheGroupSendRequest = {};
 let cacheRoomList = [];
 const cacheRoomKeyList = {};
 let cacheRoomReplayString = "";
-/**
- * 小组相关缓存 end
- */
-/**
- * 问答系统相关缓存 start
- */
+
+//问答系统相关缓存
 let cacheWikiWakeUpKey = "";
 let cachePersonSendRequest = {};
 let cacheWikiReplayString = "";
 let cacheWikiList = [];
-/**
- * 问答系统相关缓存 end
- */
+
+//天气订阅缓存
+let cacheWeatherSubscribeList = [];
+let cacheWeatherSendRequest = {};
+let cacheWeatherCity = {};
+let cacheWeatherTime = {};
+
+//缓存好友列表
 let cacheFriendList = [];
+
 const {
     config,
     log,
@@ -83,9 +86,23 @@ console.log(welcome);
 const schedule = require('node-schedule');
 
 function scheduleMerryChristmas() {
-    //秒、分、时、日、月、周几
-    schedule.scheduleJob('59 59 23 24 12 *', async function () {
-        merryChristmas(cacheFriendList, cacheRoomList)
+    //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
+    schedule.scheduleJob('0 0 * * * *', async function () {
+        console.log("start schedule");
+        cacheWeatherSubscribeList.forEach(async item => {
+            const myDate = new Date();
+            const hours = myDate.getHours();
+            if (hours === cacheWeatherTime[item]) {
+                bot.Contact.find(item).then(async data => {
+                    const text = "查询" + cacheWeatherCity[name] + "天气";
+                    const {text: reply} = await tuling.ask(text, {
+                        userid: data
+                    });
+                    await data.say(reply);
+                });
+
+            }
+        })
     });
 }
 
@@ -189,7 +206,8 @@ async function onMessage(msg) {
         return;
     }
 
-    const name = msg.from().name();
+    const from = msg.from();
+    const name = from.name();
 
     if (name === '微信团队') {
         return;
@@ -216,6 +234,43 @@ async function onMessage(msg) {
         const length = merryChristmasBlessing.length;
         const blessing = randUnique(0, length, length);
         await msg.say(merryChristmasBlessing[blessing[rd(0, length - 1)]]);
+        return;
+    }
+
+    if (messageContent.includes("订阅天气")) {
+        cacheWeatherSendRequest[name] = true;
+        msg.say("请问您要订阅哪个城市的天气？");
+        setTimeout(function () {
+            cacheWeatherSendRequest[name] = false;
+        }, 1000 * 60 * 3);
+        return;
+    }
+
+    if (cacheWeatherSendRequest[name]) {
+        if (messageContent.includes("点")) {
+            if (cacheWeatherCity[name]) {
+                const array = messageContent.split('点');
+                const time = array[0];
+                if (Data.isTimeExsit(time)) {
+                    cacheWeatherTime[name] = time;
+                    if (cacheWeatherSubscribeList.indexOf(name) === -1) {
+                        cacheWeatherSubscribeList.push(name);
+                    }
+                    msg.say("已为您设置好天气订阅");
+                } else {
+                    msg.say("抱歉您输入有误，请输入：8点或者9点");
+                }
+            } else {
+                msg.say("还不知道您要哪个城市的天气呢？");
+            }
+        } else {
+            cacheWeatherCity[name] = messageContent;
+            if (Data.isCityExsit(cacheWeatherCity[name])) {
+                msg.say("您希望每天的几点推送" + cacheWeatherCity[name] + "的天气呢");
+            } else {
+                msg.say("抱歉未查到该城市，请重新输入");
+            }
+        }
         return;
     }
 
@@ -383,7 +438,10 @@ async function reply(msg) {
             }
             console.log("replace text======" + text);
         }
-        const {text: reply, url: url, list: listNews} = await tuling.ask(text, {userid: msg.from()});
+        const {text: reply, url: url, list: listNews} = await tuling.ask(text, {
+            userid: msg.from(),
+            loc: msg.from().city()
+        });
         await msg.say(reply);
         if (url) {
             await msg.say(url);
