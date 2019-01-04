@@ -36,6 +36,22 @@ const merryChristmasBlessing = [
     "音乐卡是我的挂念，钟声是我的问候，歌声是我的祝福，雪花是我的贺卡，美酒是我的飞吻，清风是我的拥抱，快乐是我的礼物！平安夜快乐！"
 ];
 
+const cancelSubscribeWeatherKeys = [
+    "你说取消吧，我也没有不让你取消",
+    "你不说取消吧，我也不会自动取消",
+    "你说不取消吧，我也不会挽留你不取消",
+    "新年快乐",
+    "万事如意",
+    "早生贵子",
+    "事事顺心",
+    "麻辣隔壁",
+    "猪年你最棒",
+    "赶紧给老子取消",
+    "订阅你麻痹啊",
+    "小哆是傻叉",
+    "你大爷还是你大爷",
+];
+
 
 //小组相关缓存
 const cacheGroupSendRequest = {};
@@ -101,6 +117,9 @@ function scheduleMerryChristmas() {
                             userid: friend
                         });
                         await friend.say(reply);
+                        await friend.say("如果需要取消订阅，请回复如下内容，自己拷贝哦");
+                        const random = rd(0, cancelSubscribeWeatherKeys.length - 1);
+                        await friend.say(cancelSubscribeWeatherKeys[random]);
                     }
                 });
             }
@@ -239,7 +258,7 @@ async function onMessage(msg) {
         return;
     }
 
-    if (messageContent.includes("订阅天气")) {
+    if (messageContent.includes("订阅天气") || messageContent.includes("天气订阅")) {
         cacheWeatherSendRequest[name] = true;
         msg.say("请问您要订阅哪个城市的天气？");
         setTimeout(function () {
@@ -275,6 +294,14 @@ async function onMessage(msg) {
             }
         }
         return;
+    }
+
+    if (cacheWeatherSubscribeList.indexOf(name) != -1) {
+        if (cancelSubscribeWeatherKeys.indexOf(messageContent) != -1) {
+            delete cacheWeatherSubscribeList[cacheWeatherSubscribeList.indexOf(name)];
+            msg.say("恭喜您已取消订阅");
+            return;
+        }
     }
 
     if (messageContent === cacheWikiWakeUpKey) {
