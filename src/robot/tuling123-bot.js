@@ -30,6 +30,10 @@ let cacheWeatherJsonData = {};
 //缓存好友列表
 let cacheFriendList = [];
 
+//缓存julive日常工作消费品名单
+let cacheJuliveWorkData = {};
+let cacheJuliveWorkDataRequest = {};
+
 const {
     config,
     log,
@@ -179,6 +183,14 @@ async function onLogin(user) {
         console.log("cacheWeatherTime===" + JSON.stringify(cacheWeatherTime));
         console.log("cacheWeatherIsSend===" + JSON.stringify(cacheWeatherIsSend));
     });
+    fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        cacheJuliveWorkData = JSON.parse(data);
+        console.log("cacheJuliveWorkData===" + JSON.stringify(cacheJuliveWorkData));
+    });
     cacheFriendList = await bot.Contact.findAll();
 }
 
@@ -192,6 +204,17 @@ function updateWeatherJson() {
         }
     })
 }
+
+function updateJuliveWorkDataJson() {
+    fs.writeFile("julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("JSON saved to " + "weather-subcribe.json")
+        }
+    })
+}
+
 
 function onLogout(user) {
     console.log(`${user} logout`);
@@ -236,12 +259,6 @@ async function onMessage(msg) {
         return;
     }
 
-    if (messageContent.includes("圣诞节") && (messageContent.includes("祝福") || messageContent.includes("快乐"))) {
-        const length = commData.merryChristmasBlessing.length;
-        const blessing = util.randUnique(0, length, length);
-        await msg.say(commData.merryChristmasBlessing[blessing[util.rd(0, length - 1)]]);
-        return;
-    }
 
     if (messageContent.includes("订阅天气") || messageContent.includes("天气订阅")) {
         cacheWeatherSendRequest[name] = true;
@@ -424,20 +441,110 @@ async function onMessage(msg) {
                 if (filebox)
                     msg.say(filebox);
                 break;
-            // case Message.Type.Attachment:
-            //     const file = await msg.toFileBox();
-            //     const name = file.name;
-            //     console.log('Save file to: ' + name);
-            //     file.toFile("image_cache/" + name, true);
-            //     const fileboxs = FileBox.fromFile('image_cache/' + name);
-            //     if (fileboxs)
-            //         msg.say(fileboxs);
-            //     break;
         }
-        return;
+        return
     }
 
     if (room) {
+
+        if (messageContent.indexOf("统计日消") == 0 && name == "i校长") {
+            cacheJuliveWorkDataRequest[room.id] = true;
+            await msg.say("校长已开启统计功能，目前只能统计如下品类，\n如需增加品类，请回复'addTag+自定义品类名称'\n如'addTag火腿肠'即可");
+            const str = cacheJuliveWorkData.keyList.join("\n");
+            await msg.say(str);
+            await msg.say("请回复对应品类名新增，\n如'新增笔记本1卫生纸2笔1'\n或者'新增笔记本1笔1'\n或者'新增卫生纸2'");
+            return
+        }
+
+        if (cacheJuliveWorkDataRequest[room.id]) {
+            if (messageContent.indexOf("addTag") == 0) {
+                const newTag = messageContent.replace("addTag", "");
+                if (cacheJuliveWorkData.keyList.indexOf(newTag) == -1) {
+                    cacheJuliveWorkData.keyList.push(newTag);
+                    await msg.say("已添加");
+                    await msg.say("目前品类：\n" + cacheJuliveWorkData.keyList.join("\n"))
+                } else {
+                    await msg.say("抱歉，添加失败，已经存在");
+                }
+                return
+            }
+            if (messageContent == "查看") {
+                const arry = [];
+                cacheJuliveWorkData.valueList.forEach(item => {
+                    const keys = [];
+                    Object.keys(item).forEach(key => {
+                        if (key == "name") {
+                            keys.push(item[key] + ":")
+                        } else {
+                            keys.push("     " + key + " " + item[key])
+                        }
+                    });
+                    arry.push(keys.join("\n"))
+                });
+                await msg.say(arry.join("\n"));
+                return
+            }
+            if (messageContent == "统计") {
+                const arry = [];
+                cacheJuliveWorkData.keyList.forEach(item => {
+                    let num = 0;
+                    cacheJuliveWorkData.valueList.forEach(data => {
+                        if (data[item])
+                            num += parseInt(data[item])
+                    });
+                    arry.push(item + " " + num)
+                });
+                await msg.say(arry.join("\n"));
+                return
+            }
+            if (messageContent.indexOf("新增") == 0) {
+                const realContent = messageContent.replace("新增", "");
+                let newData = {
+                    "name": name
+                };
+                if (JSON.stringify(cacheJuliveWorkData.valueList).indexOf(name) != -1) {
+                    cacheJuliveWorkData.valueList.forEach((item, index) => {
+                        if (item.name == name) {
+                            newData = cacheJuliveWorkData.valueList[index];
+                        }
+                    });
+                }
+                let num = 0;
+                let isUpdate = false;
+                cacheJuliveWorkData.keyList.forEach(item => {
+                    if (realContent.includes(item)) {
+                        const arry = realContent.split(item);
+                        if (arry.length > 1) {
+                            num = arry[1].substring(0, 1);
+                        }
+                        newData[item] = num;
+                        isUpdate = true;
+                    }
+                });
+                if (!isUpdate) {
+                    msg.say("抱歉输入有误、无法更新");
+                    return
+                }
+                if (JSON.stringify(cacheJuliveWorkData.valueList).indexOf(name) == -1) {
+                    cacheJuliveWorkData.valueList.push(newData)
+                } else {
+                    cacheJuliveWorkData.valueList.forEach((item, index) => {
+                        if (item.name == name) {
+                            cacheJuliveWorkData.valueList[index] = newData;
+                        }
+                    });
+                }
+                updateJuliveWorkDataJson();
+                msg.say("已成功添加，\n看结果请回复:'查看'");
+                return
+            }
+            if (messageContent == "关闭") {
+                cacheJuliveWorkDataRequest[room.id] = false;
+                msg.say("已关闭统计");
+                return
+            }
+        }
+
         if (messageContent.includes("不要你了") || messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚") || messageContent.includes("滚吧")) {
             isAutoReplyRoom[room.id] = false;
             await reply(msg);
