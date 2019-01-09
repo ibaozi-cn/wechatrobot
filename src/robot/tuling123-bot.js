@@ -1,6 +1,7 @@
 const commData = require("./comm-data");
 const Data = require('./city-data');
 const util = require('./util');
+const api = require('./api');
 const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./tuling123");
@@ -257,6 +258,18 @@ async function onMessage(msg) {
         const filebox = FileBox.fromFile('image_cache/xiaozhang.jpeg');
         msg.say(filebox);
         return;
+    }
+
+    if (messageContent == "历史上的今天") {
+        api.getTodaysHistory(async function (res) {
+            if (res.pic){
+                const filebox = FileBox.fromUrl(res.pic);
+                await msg.say(filebox);
+            }
+            await msg.say(res.title);
+            await msg.say(res.des);
+        });
+        return
     }
 
 
