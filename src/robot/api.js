@@ -1,5 +1,6 @@
 const http = require('http');
 const util = require('./util');
+const xml2json = require('xml2json');
 
 function getTodaysHistory(callBack) {
     const date = new Date();
@@ -12,7 +13,7 @@ function getTodaysHistory(callBack) {
         })
             .on("end", function () {
                 const array = JSON.parse(resData.join(""));
-                if(array.error_code==0){
+                if (array.error_code == 0) {
                     const index = util.rd(0, array.result.length - 1);
                     callBack(array.result[index]);
                 }
@@ -21,10 +22,36 @@ function getTodaysHistory(callBack) {
 
 }
 
-getTodaysHistory(function (res) {
-    console.log(res)
-});
+function getTrainTimeList(code, callBack) {
+    const api = "http://ws.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getDetailInfoByTrainCode?TrainCode=" + code + "&UserID=";
+    http.get(api, function (res) {
+        res.setEncoding("utf-8");
+        const resData = [];
+        res.on("data", function (chunk) {
+            resData.push(chunk);
+        })
+            .on("end", function () {
+                const result = resData.join("");
+                const json = xml2json.toJson(result);
+                const objec = JSON.parse(json);
+                const trainDetailInfo = objec.DataSet['diffgr:diffgram'].getDetailInfo.TrainDetailInfo;
+
+                if (Array.isArray(trainDetailInfo)) {
+                    callBack(true, trainDetailInfo)
+                }else{
+                    callBack(false, trainDetailInfo.TrainStation)
+                }
+            });
+
+    })
+
+}
 
 module.exports = {
-    getTodaysHistory
+    getTodaysHistory,
+    getTrainTimeList
 };
+
+
+// http://tcc.taobao.com/cc/json/mobile_tel_segment.htm?tel=手机号
+// http://suggest.taobao.com/sug?code=utf-8&q=商品关键字&callback=cb   淘宝商品搜索建议
