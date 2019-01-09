@@ -271,30 +271,30 @@ async function onMessage(msg) {
         });
         return
     }
-
-    if (messageContent.indexOf("查询列车") == 0) {
-        const realContent = messageContent.replace("查询列车", "");
-        api.getTrainTimeList(realContent, (isSuccess, data) => {
-            if (isSuccess) {
-                const array = [];
-                data.forEach(item => {
-                    if (item.TrainStation.includes("车次")) {
-                        array.push("始发站：" + item.TrainStation + "\n");
-                        array.push("出发时间：" + item.StartTime + "\n")
-                    } else {
-                        array.push("    停靠站：" + item.TrainStation + "\n");
-                        array.push("    停靠时间：" + item.ArriveTime + "\n");
-                        if (item.StartTime.constructor == String)
-                            array.push("    出发时间：" + item.StartTime + "\n");
-                    }
-                });
-                msg.say(array.join(""))
-            } else {
-                msg.say(data)
-            }
-        });
-        return
-    }
+    //
+    // if (messageContent.indexOf("查询列车") == 0) {
+    //     const realContent = messageContent.replace("查询列车", "");
+    //     api.getTrainTimeList(realContent, (isSuccess, data) => {
+    //         if (isSuccess) {
+    //             const array = [];
+    //             data.forEach(item => {
+    //                 if (item.TrainStation.includes("车次")) {
+    //                     array.push("始发站：" + item.TrainStation + "\n");
+    //                     array.push("出发时间：" + item.StartTime + "\n")
+    //                 } else {
+    //                     array.push("    停靠站：" + item.TrainStation + "\n");
+    //                     array.push("    停靠时间：" + item.ArriveTime + "\n");
+    //                     if (item.StartTime.constructor == String)
+    //                         array.push("    出发时间：" + item.StartTime + "\n");
+    //                 }
+    //             });
+    //             msg.say(array.join(""))
+    //         } else {
+    //             msg.say(data)
+    //         }
+    //     });
+    //     return
+    // }
 
     if (messageContent.includes("订阅天气") || messageContent.includes("天气订阅")) {
         cacheWeatherSendRequest[name] = true;
