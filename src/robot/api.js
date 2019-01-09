@@ -1,6 +1,6 @@
 const http = require('http');
 const util = require('./util');
-// const xml2json = require('xml2json');
+const parseString = require('xml2js').parseString;
 
 function getTodaysHistory(callBack) {
     const date = new Date();
@@ -22,34 +22,36 @@ function getTodaysHistory(callBack) {
 
 }
 
-// function getTrainTimeList(code, callBack) {
-//     const api = "http://ws.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getDetailInfoByTrainCode?TrainCode=" + code + "&UserID=";
-//     http.get(api, function (res) {
-//         res.setEncoding("utf-8");
-//         const resData = [];
-//         res.on("data", function (chunk) {
-//             resData.push(chunk);
-//         })
-//             .on("end", function () {
-//                 const result = resData.join("");
-//                 const json = xml2json.toJson(result);
-//                 const objec = JSON.parse(json);
-//                 const trainDetailInfo = objec.DataSet['diffgr:diffgram'].getDetailInfo.TrainDetailInfo;
-//
-//                 if (Array.isArray(trainDetailInfo)) {
-//                     callBack(true, trainDetailInfo)
-//                 }else{
-//                     callBack(false, trainDetailInfo.TrainStation)
-//                 }
-//             });
-//
-//     })
-//
-// }
+function getTrainTimeList(code, callBack) {
+    const api = "http://ws.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getDetailInfoByTrainCode?TrainCode=" + code + "&UserID=";
+    http.get(api, function (res) {
+        res.setEncoding("utf-8");
+        const resData = [];
+        res.on("data", function (chunk) {
+            resData.push(chunk);
+        })
+            .on("end", function () {
+                const result = resData.join("");
+                parseString(result, function (err, result) {
+                    console.log(JSON.stringify(result.DataSet['diffgr:diffgram'][0].getDetailInfo));
+                    const trainDetailInfo = result.DataSet['diffgr:diffgram'][0].getDetailInfo[0].TrainDetailInfo;
+                    if (Array.isArray(trainDetailInfo)) {
+                        callBack(true, trainDetailInfo)
+                    } else {
+                        callBack(false, trainDetailInfo.TrainStation[0])
+                    }
+
+                });
+            });
+
+    })
+
+}
+
 
 module.exports = {
     getTodaysHistory,
-    // getTrainTimeList
+    getTrainTimeList
 };
 
 
