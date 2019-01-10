@@ -538,6 +538,12 @@ async function onMessage(msg) {
             msg.say("小哆已为您开启提醒功能，需要有人@您，我就会将消息转发给您。");
             return;
         }
+        if (messageContent.includes("关闭") && messageContent.includes("提醒") && messageContent.includes("功能")) {
+            cacheMentionContactData.mention[from.name()] = false;
+            updateMentionData();
+            msg.say("小哆已为您关闭提醒功能");
+            return;
+        }
 
         const arrayContact = await msg.mention();
 
