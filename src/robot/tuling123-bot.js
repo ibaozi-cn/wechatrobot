@@ -299,19 +299,19 @@ async function onMessage(msg) {
     if (messageContent.includes("美女") && messageContent.includes("图")) {
         const num = messageContent.replace(/[^0-9]/ig, "");
         if (num > 10) {
-           await msg.say("你咋不上天呢，贪心鬼，勉强给你1张look look")
+            await msg.say("你咋不上天呢，贪心鬼，勉强给你1张look look")
         }
         if (num && num <= 10) {
             for (let i = 0; i < num; i++) {
-                api.getGanHuoImage(url => {
+                api.getGanHuoImage(async url => {
                     const fileBox = FileBox.fromUrl(url);
-                    msg.say(fileBox)
+                    await msg.say(fileBox)
                 });
             }
         } else {
-            api.getGanHuoImage(url => {
+            api.getGanHuoImage(async url => {
                 const fileBox = FileBox.fromUrl(url);
-                msg.say(fileBox)
+                await msg.say(fileBox)
             });
         }
         return
