@@ -532,8 +532,8 @@ async function onMessage(msg) {
 
     if (room) {
 
-        if(messageContent.includes("开启")&&messageContent.includes("提醒")&&messageContent.includes("功能")){
-            cacheMentionContactData.mention[from.name()]=true;
+        if (messageContent.includes("开启") && messageContent.includes("提醒") && messageContent.includes("功能")) {
+            cacheMentionContactData.mention[from.name()] = true;
             updateMentionData();
             msg.say("小哆已为您开启提醒功能，需要有人@您，我就会将消息转发给您。");
             return;
@@ -542,7 +542,7 @@ async function onMessage(msg) {
         const arrayContact = await msg.mention();
 
         if (arrayContact) {
-            console.log("start mention"+JSON.stringify(arrayContact));
+            console.log("start mention" + JSON.stringify(arrayContact));
             arrayContact.forEach(item => {
                 if (cacheMentionContactData.mention[item.name()]) {
                     console.log("start mention" + item.name());
@@ -554,11 +554,15 @@ async function onMessage(msg) {
                     cacheFriendList.forEach(friend => {
                         if (friend.name() == item.name()) {
                             console.log("say mention" + friend.name());
-                            friend.say("来自"+name + "的消息\n" + messageContent)
+                            friend.say(name + "@您:\n" + messageContent)
                         }
                     });
                 }
             })
+        }
+        let fileBox = null;
+        if (msg.type() == Message.Type.Image||msg.type() == Message.Type.Audio) {
+            fileBox = await msg.toFileBox()
         }
         cacheFriendList.forEach(friend => {
             // console.log("forEach mention" + friend.name());
@@ -566,14 +570,10 @@ async function onMessage(msg) {
             if (cacheMentionContactData.mention[friend.name()] && cacheMentionAutoReply[friend.name()]) {
                 console.log("msg.type() mention" + msg.type());
                 if (msg.type() == Message.Type.Text) {
-                    friend.say(name + "给您发送的消息内容：\n" + messageContent)
+                    friend.say(name + "说：\n" + messageContent)
                 }
-                if (msg.type() == Message.Type.Image || msg.type() == Message.Type.Audio) {
-                    msg.toFileBox().then(file => {
-                        friend.say(name + "给您发送的文件").then(function () {
-                            friend.say(file)
-                        });
-                    });
+                if (fileBox) {
+                    friend.say(fileBox)
                 }
             }
         });
