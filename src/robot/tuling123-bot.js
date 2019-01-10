@@ -73,6 +73,7 @@ function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
     schedule.scheduleJob('0 0 * * * *', async function () {
         cacheFriendList = await bot.Contact.findAll();
+        console.log(JSON.stringify(cacheFriendList));
         if (cacheWeatherJsonData.names)
             cacheWeatherJsonData.names.forEach(async item => {
                 if (!cacheWeatherIsSend[item]) return;
