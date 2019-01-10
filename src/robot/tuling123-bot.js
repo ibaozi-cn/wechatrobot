@@ -484,19 +484,19 @@ async function onMessage(msg) {
         }
         switch (msg.type()) {
             case Message.Type.Image:
-                const fileName = msg.payload.filename;
-                if (fileName && fileName.endsWith("gif")) {
-                    const file = await msg.toFileBox();
-                    const name = file.name;
-                    console.log('Save file to: ' + name);
-                    file.toFile("image/" + name, true);
-                }
+                // const fileName = msg.payload.filename;
+                // if (fileName && fileName.endsWith("gif")) {
+                //     const file = await msg.toFileBox();
+                //     const name = file.name;
+                //     console.log('Save file to: ' + name);
+                //     file.toFile("image/" + name, true);
+                // }
                 const length = cacheImageName.length - 1;
                 const randImage = util.randUnique(0, length, length);
                 const imageName = cacheImageName[randImage[util.rd(0, length)]];
                 const filebox = FileBox.fromFile('image_cache/image/' + imageName);
                 if (filebox)
-                    msg.say(filebox);
+                  await  msg.say(filebox);
                 break;
         }
         return
