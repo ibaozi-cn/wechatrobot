@@ -263,7 +263,7 @@ async function onMessage(msg) {
         return;
     }
 
-    if (messageContent == "历史上的今天") {
+    if (messageContent == "历史上的今天" || messageContent == "历史今天") {
         api.getTodaysHistory(async function (res) {
             if (res.pic) {
                 const filebox = FileBox.fromUrl(res.pic);
@@ -275,8 +275,8 @@ async function onMessage(msg) {
         return
     }
 
-    if (messageContent.indexOf("查询列车") == 0) {
-        const realContent = messageContent.replace("查询列车", "");
+    if (messageContent.indexOf("查列车") == 0) {
+        const realContent = messageContent.replace("查列车", "");
         api.getTrainTimeList(realContent, (isSuccess, data) => {
             if (isSuccess) {
                 const array = [];
@@ -299,7 +299,7 @@ async function onMessage(msg) {
         return
     }
 
-    if (messageContent.includes("美女") && messageContent.includes("图")) {
+    if ((messageContent.includes("美女") || messageContent.includes("小黄") && messageContent.includes("图")) || messageContent.includes("开车")) {
         const num = messageContent.replace(/[^0-9]/ig, "");
         if (num > 10) {
             await msg.say("你咋不上天呢，贪心鬼，勉强给你1张look look")
@@ -689,7 +689,7 @@ async function onFriend(friendship) {
                 // if want to send msg , you need to delay sometimes
                 await new Promise(r => setTimeout(r, 1000 * 5));
                 await friendship.contact().say('您好，我叫Ai小哆，有什么可以帮助您的');
-                await friendship.contact().say('我可以帮您，查天气，查地理，查快递，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，总之您有什么需求尽管提，我也在不断学习哦。么么哒 [亲亲]');
+                await friendship.contact().say('我可以帮您，查天气，查地理，查列车，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，总之您有什么需求尽管提，我也在不断学习哦。么么哒 [亲亲]');
                 await friendship.contact().say('我还可以做您的群助手，多群转发、单群转发、自动欢迎新成员、自动发送群规、把我设置成群管理后，我还能帮您拉人、踢人等，只需您发一个指令');
                 // } else {
                 //     logMsg = '不允许，因为他发送的消息是：' + friendship.hello()
