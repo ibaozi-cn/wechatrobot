@@ -1,6 +1,8 @@
 const http = require('http');
+const https = require('https');
 const util = require('./util');
 const parseString = require('xml2js').parseString;
+const axios = require('axios');
 
 function getTodaysHistory(callBack) {
     const date = new Date();
@@ -48,10 +50,24 @@ function getTrainTimeList(code, callBack) {
 
 }
 
+function getGanHuoImage(callBack) {
+    // https://gank.io/api/data/%E7%A6%8F%E5%88%A9/1/668
+    const radom = util.rd(0, 668);
+    console.log(radom);
+    const api = "https://gank.io/api/data/%E7%A6%8F%E5%88%A9/1/" + radom;
+    console.log(api);
+    axios.get(api).then(response => {
+        console.log(response.data.results[0].url);
+        callBack(response.data.results[0].url)
+    }).catch(error => {
+        console.log(error)
+    })
+}
 
 module.exports = {
     getTodaysHistory,
-    getTrainTimeList
+    getTrainTimeList,
+    getGanHuoImage
 };
 
 

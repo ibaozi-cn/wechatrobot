@@ -296,6 +296,27 @@ async function onMessage(msg) {
         return
     }
 
+    if (messageContent.includes("美女") && messageContent.includes("图")) {
+        const num = messageContent.replace(/[^0-9]/ig, "");
+        if (num > 10) {
+           await msg.say("你咋不上天呢，贪心鬼，勉强给你1张look look")
+        }
+        if (num && num <= 10) {
+            for (let i = 0; i < num; i++) {
+                api.getGanHuoImage(url => {
+                    const fileBox = FileBox.fromUrl(url);
+                    msg.say(fileBox)
+                });
+            }
+        } else {
+            api.getGanHuoImage(url => {
+                const fileBox = FileBox.fromUrl(url);
+                msg.say(fileBox)
+            });
+        }
+        return
+    }
+
     if (messageContent.includes("订阅天气") || messageContent.includes("天气订阅")) {
         cacheWeatherSendRequest[name] = true;
         msg.say("请问您要订阅哪个城市的天气？");
