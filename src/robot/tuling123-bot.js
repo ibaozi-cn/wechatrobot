@@ -533,7 +533,7 @@ async function onMessage(msg) {
     if (room) {
 
         if(messageContent.includes("开启")&&messageContent.includes("提醒")&&messageContent.includes("功能")){
-            cacheMentionContactData.mention[from.id]=true;
+            cacheMentionContactData.mention[from.name()]=true;
             updateMentionData();
             msg.say("小哆已为您开启提醒功能，需要有人@您，我就会将消息转发给您。");
             return;
@@ -544,16 +544,16 @@ async function onMessage(msg) {
         if (arrayContact) {
             console.log("start mention"+JSON.stringify(arrayContact));
             arrayContact.forEach(item => {
-                if (cacheMentionContactData.mention[item.id]) {
-                    console.log("start mention" + item.id);
-                    cacheMentionAutoReply[item.id] = true;
+                if (cacheMentionContactData.mention[item.name()]) {
+                    console.log("start mention" + item.name());
+                    cacheMentionAutoReply[item.name()] = true;
                     setTimeout(function () {
-                        console.log("stop mention" + item.id);
-                        cacheMentionAutoReply[item.id] = false;
+                        console.log("stop mention" + item.name());
+                        cacheMentionAutoReply[item.name()] = false;
                     }, 1000 * 60 * 3);
                     cacheFriendList.forEach(friend => {
-                        if (friend.id == item.id) {
-                            console.log("say mention" + friend.id);
+                        if (friend.name() == item.name()) {
+                            console.log("say mention" + friend.name());
                             friend.say("来自"+name + "的消息\n" + messageContent)
                         }
                     });
@@ -563,7 +563,7 @@ async function onMessage(msg) {
         cacheFriendList.forEach(friend => {
             // console.log("forEach mention" + friend.name());
             // console.log("forEach mention" + cacheMentionContactData.mention[friend.name] + " " + cacheMentionAutoReply[friend.name()]);
-            if (cacheMentionContactData.mention[friend.id] && cacheMentionAutoReply[friend.id]) {
+            if (cacheMentionContactData.mention[friend.name()] && cacheMentionAutoReply[friend.name()]) {
                 console.log("msg.type() mention" + msg.type());
                 if (msg.type() == Message.Type.Text) {
                     friend.say(name + "给您发送的消息内容：\n" + messageContent)
