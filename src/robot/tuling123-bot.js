@@ -35,6 +35,9 @@ let cacheFriendList = [];
 let cacheJuliveWorkData = {};
 let cacheJuliveWorkDataRequest = {};
 
+//缓存最近一条消息内容
+let cacheLastMessageContent = {};
+
 const {
     config,
     log,
@@ -496,13 +499,20 @@ async function onMessage(msg) {
                 const imageName = cacheImageName[randImage[util.rd(0, length)]];
                 const filebox = FileBox.fromFile('image_cache/image/' + imageName);
                 if (filebox)
-                  await  msg.say(filebox);
+                    await msg.say(filebox);
                 break;
         }
         return
     }
 
     if (room) {
+        if (messageContent.includes("替我") && messageContent.includes("回复")) {
+            reply(cacheLastMessageContent[room.id]);
+            return
+        } else {
+            if (msg.type() == Message.Type.Text)
+                cacheLastMessageContent[room.id] = msg;
+        }
 
         if (messageContent.indexOf("统计日消") == 0 && name == "i校长") {
             cacheJuliveWorkDataRequest[room.id] = true;
