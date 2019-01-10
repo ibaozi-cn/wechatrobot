@@ -38,6 +38,10 @@ let cacheJuliveWorkDataRequest = {};
 //缓存最近一条消息内容
 let cacheLastMessageContent = {};
 
+//缓存小哆自动转发被@消息好友列表
+let cacheMentionContactData = {};
+let cacheMentionAutoReply = {};
+
 const {
     config,
     log,
@@ -68,6 +72,7 @@ const schedule = require('node-schedule');
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
     schedule.scheduleJob('0 0 * * * *', async function () {
+        cacheFriendList = await bot.Contact.findAll();
         if (cacheWeatherJsonData.names)
             cacheWeatherJsonData.names.forEach(async item => {
                 if (!cacheWeatherIsSend[item]) return;
@@ -196,6 +201,15 @@ async function onLogin(user) {
         console.log("cacheJuliveWorkData===" + JSON.stringify(cacheJuliveWorkData));
     });
     cacheFriendList = await bot.Contact.findAll();
+
+    fs.readFile("mention-data.json", "utf-8", (err, data) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        cacheMentionContactData = JSON.parse(data);
+        console.log("cacheMentionContactData===" + JSON.stringify(cacheMentionContactData));
+    })
 }
 
 
@@ -214,7 +228,17 @@ function updateJuliveWorkDataJson() {
         if (err) {
             console.log(err);
         } else {
-            console.log("JSON saved to " + "weather-subcribe.json")
+            console.log("JSON saved to " + "julive-work-data.json")
+        }
+    })
+}
+
+function updateMentionData() {
+    fs.writeFile("mention-data.json", JSON.stringify(cacheMentionContactData, null, 2), (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("JSON saved to " + "mention-data.json")
         }
     })
 }
@@ -506,6 +530,53 @@ async function onMessage(msg) {
     }
 
     if (room) {
+
+        if(messageContent.includes("开启")&&messageContent.includes("提醒")&&messageContent.includes("功能")){
+            cacheMentionContactData.mention[from.id]=true;
+            updateMentionData();
+            msg.say("小哆已为您开启提醒功能，需要有人@您，我就会将消息转发给您。");
+            return;
+        }
+
+        const arrayContact = await msg.mention();
+
+        if (arrayContact) {
+            console.log("start mention"+JSON.stringify(arrayContact));
+            arrayContact.forEach(item => {
+                if (cacheMentionContactData.mention[item.id]) {
+                    console.log("start mention" + item.id);
+                    cacheMentionAutoReply[item.id] = true;
+                    setTimeout(function () {
+                        console.log("stop mention" + item.id);
+                        cacheMentionAutoReply[item.id] = false;
+                    }, 1000 * 60 * 3);
+                    cacheFriendList.forEach(friend => {
+                        if (friend.id == item.id) {
+                            console.log("say mention" + friend.id);
+                            friend.say("来自"+name + "的消息\n" + messageContent)
+                        }
+                    });
+                }
+            })
+        }
+        cacheFriendList.forEach(friend => {
+            // console.log("forEach mention" + friend.name());
+            // console.log("forEach mention" + cacheMentionContactData.mention[friend.name] + " " + cacheMentionAutoReply[friend.name()]);
+            if (cacheMentionContactData.mention[friend.id] && cacheMentionAutoReply[friend.id]) {
+                console.log("msg.type() mention" + msg.type());
+                if (msg.type() == Message.Type.Text) {
+                    friend.say(name + "给您发送的消息内容：\n" + messageContent)
+                }
+                if (msg.type() == Message.Type.Image || msg.type() == Message.Type.Audio) {
+                    msg.toFileBox().then(file => {
+                        friend.say(name + "给您发送的文件").then(function () {
+                            friend.say(file)
+                        });
+                    });
+                }
+            }
+        });
+
         if ((messageContent.includes("替我") || messageContent.includes("帮我")) && (messageContent.includes("回复") || messageContent.includes("回答"))) {
             reply(cacheLastMessageContent[room.id]);
             return
