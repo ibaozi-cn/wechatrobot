@@ -506,7 +506,7 @@ async function onMessage(msg) {
     }
 
     if (room) {
-        if (messageContent.includes("替我") && messageContent.includes("回复")) {
+        if ((messageContent.includes("替我") || messageContent.includes("帮我")) && (messageContent.includes("回复") || messageContent.includes("回答"))) {
             reply(cacheLastMessageContent[room.id]);
             return
         } else {
