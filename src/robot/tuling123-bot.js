@@ -68,6 +68,7 @@ Please wait... I'm trying to login in...
 console.log(welcome);
 
 const schedule = require('node-schedule');
+const welcomeList = require("./welcome-data").welcomeList;
 
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
@@ -788,7 +789,12 @@ async function onRoomJoin(room, inviteeList, inviter) {
     );
     console.log('机器人入群 id:', room.id);
     const topic = await room.topic();
-    await room.say(`欢迎加入 "${topic}"!`, inviteeList[0]);
+    const welcome = welcomeList[topic];
+    if(welcome){
+        await room.say(welcome.welcome, inviteeList[0]);
+    }else{
+        await room.say(`欢迎加入 "${topic}"! 请误发送广告`, inviteeList[0]);
+    }
     const rule = commData.ruleMap[topic];
     if (rule) {
         await room.say(rule, inviteeList[0]);
