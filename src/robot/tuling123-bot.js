@@ -557,12 +557,6 @@ async function onMessage(msg) {
                         console.log("stop mention" + item.name());
                         cacheMentionAutoReply[item.name()] = false;
                     }, 1000 * 60 * 3);
-                    cacheFriendList.forEach(friend => {
-                        if (friend.name() == item.name()) {
-                            console.log("say mention" + friend.name());
-                            friend.say(name + "@您:\n" + messageContent)
-                        }
-                    });
                 }
             })
         }
