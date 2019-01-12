@@ -56,32 +56,9 @@ const merryChristmasBlessing = [
     "音乐卡是我的挂念，钟声是我的问候，歌声是我的祝福，雪花是我的贺卡，美酒是我的飞吻，清风是我的拥抱，快乐是我的礼物！平安夜快乐！"
 ];
 
-const roomRule = "本群群规，新老同学请注意：\n" +
-    "\n" +
-    "1. 禁止向群里发广告、二维码、团购优惠券领取、支付宝口令，小程序、广告推文等信息（违者至少10元红包，否则t）\n" +
-    "\n" +
-    "2. 本群为技术讨论群，上班期间尽量少吹水，多多解答问题，相互帮助，这也是建群的原因。\n" +
-    "\n" +
-    "3. 修改一下群名片 ,格式为: 城市 - 昵称";
-
-const roomRuleXiaoDuo = "本群群规，新老同学请注意：\n" +
-    "\n" +
-    "1. 禁止向群里发广告、二维码、团购优惠券领取、支付宝口令，小程序、广告推文等信息（违者至少10元红包，否则t）\n" +
-    "\n" +
-    "2. 本群致力于打造微信客户端的Ai机器人，您可以提任何功能需求，提任何奇葩问题。再次欢迎您的到来，让我们一起迎接新的人工智能。\n" +
-    "\n" +
-    "3. 修改一下群名片 ,格式为: 城市 - 昵称";
-
-const ruleMap = {
-    "依然范特西技术交流群": roomRule,
-    "依然饭特稀西交流群2": roomRule,
-    "小哆智能语音": roomRuleXiaoDuo
-};
-
 
 module.exports = {
     merryChristmasBlessing,
     cancelSubscribeWeatherKeys,
-    outReplyList,
-    ruleMap
+    outReplyList
 };

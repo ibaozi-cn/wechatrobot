@@ -14,6 +14,11 @@ const cacheGroupSendRequest = {};
 let cacheRoomList = [];
 const cacheRoomKeyList = {};
 let cacheRoomReplayString = "";
+const isAutoReplyRoom = {};
+let cacheRoomManagerData = {};
+const cacheRoomManagerRequest = {};
+const cacheRoomManagerRoomRequest = {};
+const cacheRoomManagerAddRequest = {};
 
 //问答系统相关缓存
 let cacheWikiWakeUpKey = "";
@@ -68,7 +73,6 @@ Please wait... I'm trying to login in...
 console.log(welcome);
 
 const schedule = require('node-schedule');
-const welcomeList = require("./welcome-data").welcomeList;
 
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
@@ -121,9 +125,9 @@ bot.on('message', onMessage);
 bot.on('error', onError);
 bot.on('friendship', onFriend);
 bot.on('room-join', onRoomJoin);
+bot.on('room-topic', onRoomTopicUpdate);
 // bot.on('room-leave',onRoomLeave);
 
-const isAutoReplyRoom = {};
 
 bot.start()
     .catch(console.error);
@@ -143,23 +147,23 @@ async function onLogin(user) {
             cacheImageName.push(file)
         });
     });
-    cacheRoomList = await bot.Room.findAll();
-    // console.log("cacheRoomList==" + JSON.stringify(cacheRoomList));
-    let attr = [];
-    cacheRoomList.forEach(function (item, index) {
-        cacheRoomKeyList[index] = item;
-        item.topic().then(function (str) {
-            attr.push("\n");
-            attr.push("群" + index);
-            attr.push(":" + str);
-            if (index === cacheRoomList.length - 1) {
-                cacheRoomReplayString = attr.join("");
-                console.log("cacheRoomReplayString==" + cacheRoomReplayString);
-            }
+    bot.Room.findAll().then(roomList => {
+        cacheRoomList = roomList;
+        let attr = [];
+        cacheRoomList.forEach(function (item, index) {
+            cacheRoomKeyList[index] = item;
+            item.topic().then(function (str) {
+                attr.push("\n");
+                attr.push("群" + index);
+                attr.push(":" + str);
+                if (index === cacheRoomList.length - 1) {
+                    cacheRoomReplayString = attr.join("");
+                    console.log("cacheRoomReplayString==" + cacheRoomReplayString);
+                }
+            });
         });
     });
-    // console.log("cacheRoomKeyList==" + JSON.stringify(cacheRoomKeyList));
-    fs.readFile("wechatrobot/julive-data.json", 'utf-8', (err, data) => {
+    fs.readFile("julive-data.json", 'utf-8', (err, data) => {
         if (err) {
             console.log(err);
             return;
@@ -200,7 +204,6 @@ async function onLogin(user) {
             return;
         }
         cacheJuliveWorkData = JSON.parse(data);
-        console.log("cacheJuliveWorkData===" + JSON.stringify(cacheJuliveWorkData));
     });
     cacheFriendList = await bot.Contact.findAll();
 
@@ -210,10 +213,25 @@ async function onLogin(user) {
             return;
         }
         cacheMentionContactData = JSON.parse(data);
-        console.log("cacheMentionContactData===" + JSON.stringify(cacheMentionContactData));
+    });
+    fs.readFile("./../../room-manager-data.json", "utf-8", (err, data) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        cacheRoomManagerData = JSON.parse(data)
     })
 }
 
+function updateRoomManagerDataJson() {
+    fs.writeFile("./../../room-manager-data.json", JSON.stringify(cacheRoomManagerData, null, 2), (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("JSON saved to " + "room-manager-data.json")
+        }
+    })
+}
 
 function updateWeatherJson() {
     fs.writeFile("weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
@@ -266,6 +284,7 @@ async function onMessage(msg) {
     }
 
     const from = msg.from();
+    console.log("from === >" + JSON.stringify(from));
     const name = from.name();
 
     if (name === '微信团队') {
@@ -325,7 +344,7 @@ async function onMessage(msg) {
         return
     }
 
-    if ((messageContent.includes("美女") || messageContent.includes("小黄") && messageContent.includes("图")) || messageContent.includes("开车")) {
+    if ((messageContent.includes("美女") || messageContent.includes("小黄") && messageContent.includes("图")) || messageContent.indexOf("开车") == 0) {
         const num = messageContent.replace(/[^0-9]/ig, "");
         if (num > 10) {
             await msg.say("你咋不上天呢，贪心鬼，勉强给你1张look look")
@@ -532,6 +551,33 @@ async function onMessage(msg) {
     }
 
     if (room) {
+        if (messageContent.indexOf("TM@") == 0) {
+            const realName = messageContent.replace("TM@", "");
+            const topic = await room.topic();
+            const roomTopicList = cacheRoomManagerData.roomTopicList;
+            const roomList = cacheRoomManagerData.roomList;
+            Object.keys(roomTopicList).forEach(async key => {
+                if (topic == roomTopicList[key]) {
+                    const manager = roomList[key];
+                    if (manager) {
+                        console.log("manager=====" + JSON.stringify(manager));
+                        if (manager.managers[name]) {
+                            const member = await room.member(name);
+                            console.log("member=====" + JSON.stringify(member));
+                            try {
+                                await room.del(member);
+                                await room.say("小哆已经试着踢" + realName + "了，如果失败了，请您将小哆设置成管理员再重试哦。")
+                            } catch (e) {
+                                log.error('Bot', 'getOutRoom() exception: ' + e.stack);
+                            }
+                        } else {
+                            room.say("您不是管理员不能T人")
+                        }
+                    }
+                }
+            });
+            return
+        }
 
         if (messageContent.includes("开启") && messageContent.includes("提醒") && messageContent.includes("功能")) {
             cacheMentionContactData.mention[from.name()] = true;
@@ -551,31 +597,36 @@ async function onMessage(msg) {
         if (arrayContact) {
             console.log("start mention" + JSON.stringify(arrayContact));
             arrayContact.forEach(item => {
-                if (cacheMentionContactData.mention[item.name()]) {
-                    console.log("start mention" + item.name());
-                    cacheMentionAutoReply[item.name()] = true;
-                    setTimeout(function () {
-                        console.log("stop mention" + item.name());
-                        cacheMentionAutoReply[item.name()] = false;
-                    }, 1000 * 60 * 3);
-                }
+                if (cacheMentionContactData.mention)
+                    if (cacheMentionContactData.mention[item.name()]) {
+                        console.log("start mention" + item.name());
+                        cacheMentionAutoReply[item.name()] = true;
+                        setTimeout(function () {
+                            console.log("stop mention" + item.name());
+                            cacheMentionAutoReply[item.name()] = false;
+                        }, 1000 * 60 * 3);
+                    }
             })
         }
         let fileBox = null;
-        if (msg.type() == Message.Type.Image||msg.type() == Message.Type.Audio) {
+        if (msg.type() == Message.Type.Image || msg.type() == Message.Type.Audio) {
             fileBox = await msg.toFileBox()
         }
         cacheFriendList.forEach(friend => {
             // console.log("forEach mention" + friend.name());
             // console.log("forEach mention" + cacheMentionContactData.mention[friend.name] + " " + cacheMentionAutoReply[friend.name()]);
-            if (cacheMentionContactData.mention[friend.name()] && cacheMentionAutoReply[friend.name()]) {
-                console.log("msg.type() mention" + msg.type());
-                if (msg.type() == Message.Type.Text) {
-                    friend.say(name + "说：\n" + messageContent)
-                }
-                if (fileBox) {
-                    friend.say(fileBox)
-                }
+            const friendName = friend.name();
+            if (friendName != null || friendName != "") {
+                if (cacheMentionContactData.mention)
+                    if (cacheMentionContactData.mention[friendName] && cacheMentionAutoReply[friendName]) {
+                        console.log("msg.type() mention" + msg.type());
+                        if (msg.type() == Message.Type.Text) {
+                            friend.say(name + "说：\n" + messageContent)
+                        }
+                        if (fileBox) {
+                            friend.say(fileBox)
+                        }
+                    }
             }
         });
 
@@ -587,9 +638,9 @@ async function onMessage(msg) {
                 cacheLastMessageContent[room.id] = msg;
         }
 
-        if (messageContent.indexOf("统计日消") == 0 && name == "i校长") {
+        if (messageContent.indexOf("统计日用品") == 0) {
             cacheJuliveWorkDataRequest[room.id] = true;
-            await msg.say("校长已开启统计功能，目前只能统计如下品类，\n如需增加品类，请回复'addTag+自定义品类名称'\n如'addTag火腿肠'即可");
+            await msg.say("已开启统计功能，目前只能统计如下品类，\n如需增加品类，请回复'addTag+自定义品类名称'\n如'addTag火腿肠'即可");
             const str = cacheJuliveWorkData.keyList.join("\n");
             await msg.say(str);
             await msg.say("请回复对应品类名新增，\n如'新增笔记本1卫生纸2笔1'\n或者'新增笔记本1笔1'\n或者'新增卫生纸2'");
@@ -709,8 +760,63 @@ async function onMessage(msg) {
             await reply(msg)
         }
         return;
+    } else {
+
+        if (messageContent == "添加群管") {
+            cacheRoomManagerRequest[from.id] = true;
+            await msg.say("小哆所在群组如下：" + cacheRoomReplayString);
+            await msg.say("请问您要添加哪个群的管理？请回复群对应编号即可，如：群1");
+            return;
+        }
+
+        if (cacheRoomManagerRequest[from.id]) {
+            if (cacheRoomManagerAddRequest[from.id]) {
+                cacheRoomManagerData.roomList[cacheRoomManagerAddRequest[from.id]].managers[messageContent] = true;
+                updateRoomManagerDataJson();
+                await msg.say("已成功添加" + messageContent + "为管理员哦");
+                cacheRoomManagerAddRequest[from.id] = undefined;
+                cacheRoomManagerRequest[from.id] = undefined;
+                cacheRoomManagerRoomRequest[from.id] = undefined;
+                return
+            }
+
+            if (cacheRoomManagerRoomRequest[from.id]) {
+                const roomTopicList = cacheRoomManagerData.roomTopicList;
+                const roomList = cacheRoomManagerData.roomList;
+                Object.keys(roomTopicList).forEach(async key => {
+                    if (cacheRoomManagerRoomRequest[from.id] == roomTopicList[key]) {
+                        const manager = roomList[key];
+                        if (manager) {
+                            if (manager.password == messageContent) {
+                                cacheRoomManagerAddRequest[from.id] = key;
+                                await msg.say("请您拷贝添加群管理员的昵称，然后告诉我，注意：要他本人昵称，不要拷贝群昵称哦。");
+                            } else {
+                                await msg.say("密码输入错误，请重新输入");
+                            }
+                        } else {
+                            await msg.say("未找到匹配密码，请寻求i校长的帮助");
+                        }
+                    }
+                });
+                return
+            }
+            if (messageContent.indexOf("群") == 0) {
+                const realRoom = messageContent.replace("群", "");
+                const room = cacheRoomKeyList[realRoom];
+                if (room) {
+                    const topic = await room.topic();
+                    cacheRoomManagerRoomRequest[from.id] = topic;
+                    await msg.say("请输入群【" + topic + "】的管理密码，如：密码1234");
+                } else {
+                    await msg.say("抱歉没找到您说的群，请回复群对应编号即可，如：群1");
+                }
+                return
+            }
+
+        }
+
     }
-    await reply(msg)
+    await reply(msg);
 }
 
 async function reply(msg) {
@@ -789,19 +895,36 @@ async function onRoomJoin(room, inviteeList, inviter) {
     );
     console.log('机器人入群 id:', room.id);
     const topic = await room.topic();
-    const welcome = welcomeList[topic];
-    if(welcome){
-        await room.say(welcome.welcome, inviteeList[0]);
-    }else{
-        await room.say(`欢迎加入 "${topic}"! 请误发送广告`, inviteeList[0]);
+    const roomTopicList = cacheRoomManagerData.roomTopicList;
+    if (!JSON.stringify(roomTopicList).includes(topic)) {
+        await room.say("Ai小哆欢迎您入群哦，么么哒", inviteeList[0]);
+        return;
     }
-    const rule = commData.ruleMap[topic];
-    if (rule) {
-        await room.say(rule, inviteeList[0]);
-        if (topic === "小哆智能语音") {
-            await room.say('我可以帮您，查天气，查地理，查快递，查邮编，查历史人物，查新闻，算数，中英翻译，还可以讲笑话哦，我一直在不断学习哦。么么哒 [亲亲]');
-            await room.say(`我还可以做您的群助手，多群转发、单群转发、自动欢迎新成员、自动发送群规、把我设置成群管理后，我还能帮您拉人、踢人等，只需您发一个指令`);
+    const roomList = cacheRoomManagerData.roomList;
+    Object.keys(roomTopicList).forEach(async key => {
+        if (topic == roomTopicList[key]) {
+            const manager = roomList[key];
+            if (manager) {
+                const welcome = manager.welcome;
+                const announce = manager.announce;
+                await room.say(welcome, inviteeList[0]);
+                if (announce && announce != "") {
+                    await room.say(announce, inviteeList[0]);
+                }
+            } else {
+                await room.say("Ai小哆欢迎您入群哦，么么哒", inviteeList[0]);
+            }
         }
-    }
+    });
 }
 
+async function onRoomTopicUpdate(room, topic, oldTopic, changer) {
+    const roomTopicList = cacheRoomManagerData.roomTopicList;
+    Object.keys(roomTopicList).forEach(async (key, index) => {
+        if (oldTopic == roomTopicList[key]) {
+            roomTopicList[index] = topic;
+            updateRoomManagerDataJson();
+            await room.say(`"${changer.name()}"将群名"${oldTopic}" 修改为 "${topic}"`)
+        }
+    });
+}
