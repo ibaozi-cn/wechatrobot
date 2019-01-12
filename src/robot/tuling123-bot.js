@@ -562,7 +562,7 @@ async function onMessage(msg) {
                     if (manager) {
                         console.log("manager=====" + JSON.stringify(manager));
                         if (manager.managers[name]) {
-                            const member = await room.member(name);
+                            const member = await room.member(realName);
                             console.log("member=====" + JSON.stringify(member));
                             try {
                                 await room.del(member);
