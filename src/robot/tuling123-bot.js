@@ -789,7 +789,7 @@ async function onMessage(msg) {
                         if (manager) {
                             if (manager.password == messageContent) {
                                 cacheRoomManagerAddRequest[from.id] = key;
-                                await msg.say("请您拷贝添加群管理员的昵称，然后告诉我，注意：要他本人昵称，不要拷贝群昵称哦。");
+                                await msg.say("请您拷贝添加群管理员的昵称，然后告诉我，注意：拷贝他本人的群昵称哦");
                             } else {
                                 await msg.say("密码输入错误，请重新输入");
                             }
