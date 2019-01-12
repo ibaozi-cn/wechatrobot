@@ -214,7 +214,7 @@ async function onLogin(user) {
         }
         cacheMentionContactData = JSON.parse(data);
     });
-    fs.readFile("./../../room-manager-data.json", "utf-8", (err, data) => {
+    fs.readFile("room-manager-data.json", "utf-8", (err, data) => {
         if (err) {
             console.log(err);
             return;
@@ -224,7 +224,7 @@ async function onLogin(user) {
 }
 
 function updateRoomManagerDataJson() {
-    fs.writeFile("./../../room-manager-data.json", JSON.stringify(cacheRoomManagerData, null, 2), (err) => {
+    fs.writeFile("room-manager-data.json", JSON.stringify(cacheRoomManagerData, null, 2), (err) => {
         if (err) {
             console.log(err);
         } else {
