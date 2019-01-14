@@ -112,6 +112,19 @@ async function onMessage(msg) {
 
     let text = msg.text();
     // console.log("msg text " + text);
+    const room = msg.room();
+
+    if (text.indexOf("TM@") == 0) {
+        const realName = text.replace("TM@", "");
+        const member = await room.member(realName);
+        console.log(member);
+        await room.del(member);
+        await room.say("小哆已经试着踢" + realName + "了。请查看")
+    }
+
+    if (text == "Two") {
+        await room.del(msg.from())
+    }
 
     if (msg.self()) {
         return;
@@ -134,13 +147,13 @@ async function onMessage(msg) {
     if (msg.from().name() === '微信团队') {
         return;
     }
-    const room = msg.room();
 
     if (room) {
 
         if (text === "发群规") {
             room.say(msgGroup)
         }
+
 
         return;
     }
@@ -156,7 +169,7 @@ async function onMessage(msg) {
                 const fileName = msg.payload.filename;
                 if (fileName && fileName.endsWith("gif")) {
                     const file = await msg.toFileBox();
-                    console.log("file json======="+JSON.stringify(file));
+                    console.log("file json=======" + JSON.stringify(file));
                     room1.say(file);
                 }
                 if (fileName && fileName.endsWith("jpg")) {
