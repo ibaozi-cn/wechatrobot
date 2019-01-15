@@ -1,51 +1,12 @@
 const commData = require("./comm-data");
-const Data = require('./city-data');
+const Driver = require("./driver-car");
+const History = require("./history-today");
+const Train = require("./search-train");
+const CacheData = require('./cache-data');
 const util = require('./util');
-const api = require('./api');
 const qrTerm = require("qrcode-terminal");
 
 const Tuling123 = require("./tuling123");
-const fs = require('fs');
-
-const cacheImageName = [];
-
-//小组相关缓存
-const cacheGroupSendRequest = {};
-let cacheRoomList = [];
-const cacheRoomKeyList = {};
-let cacheRoomReplayString = "";
-const isAutoReplyRoom = {};
-let cacheRoomManagerData = {};
-const cacheRoomManagerRequest = {};
-const cacheRoomManagerRoomRequest = {};
-const cacheRoomManagerAddRequest = {};
-
-//问答系统相关缓存
-let cacheWikiWakeUpKey = "";
-let cachePersonSendRequest = {};
-let cacheWikiReplayString = "";
-let cacheWikiList = [];
-
-//天气订阅缓存
-let cacheWeatherSendRequest = {};
-let cacheWeatherCity = {};
-let cacheWeatherTime = {};
-let cacheWeatherIsSend = {};
-let cacheWeatherJsonData = {};
-
-//缓存好友列表
-let cacheFriendList = [];
-
-//缓存julive日常工作消费品名单
-let cacheJuliveWorkData = {};
-let cacheJuliveWorkDataRequest = {};
-
-//缓存最近一条消息内容
-let cacheLastMessageContent = {};
-
-//缓存小哆自动转发被@消息好友列表
-let cacheMentionContactData = {};
-let cacheMentionAutoReply = {};
 
 const {
     config,
@@ -73,22 +34,23 @@ Please wait... I'm trying to login in...
 console.log(welcome);
 
 const schedule = require('node-schedule');
+const Weather = require("./weather");
 
 function scheduleMerryChristmas() {
     //秒、分、时、日、月、周几  demo  '59 59 23 24 12 *'
     schedule.scheduleJob('0 0 * * * *', async function () {
-        cacheFriendList = await bot.Contact.findAll();
-        console.log(JSON.stringify(cacheFriendList));
+        CacheData.cacheFriendList = await bot.Contact.findAll();
+        console.log(JSON.stringify(CacheData.cacheFriendList));
         if (cacheWeatherJsonData.names)
             cacheWeatherJsonData.names.forEach(async item => {
-                if (!cacheWeatherIsSend[item]) return;
+                if (!CacheData.cacheWeatherIsSend[item]) return;
                 const myDate = new Date();
                 const hours = myDate.getHours();
-                if (hours == cacheWeatherTime[item]) {
+                if (hours == CacheData.cacheWeatherTime[item]) {
                     cacheFriendList.forEach(async friend => {
                         const name = friend.name();
                         if (name == item) {
-                            const text = "查询" + cacheWeatherCity[name] + "天气";
+                            const text = "查询" + CacheData.cacheWeatherCity[name] + "天气";
                             console.log("start schedule " + text);
                             const {text: reply} = await tuling.ask(text, {
                                 userid: friend
@@ -140,127 +102,24 @@ function onScan(qrcode, status) {
 
 async function onLogin(user) {
     console.log(`${user} login`);
-    fs.readdir("image_cache/image/", (error, files) => {
-        if (!files) return;
-        // console.log("files====" + JSON.stringify(files));
-        files.forEach(file => {
-            cacheImageName.push(file)
-        });
-    });
     bot.Room.findAll().then(roomList => {
-        cacheRoomList = roomList;
+        CacheData.cacheRoomList = roomList;
         let attr = [];
-        cacheRoomList.forEach(function (item, index) {
-            cacheRoomKeyList[index] = item;
+        CacheData.cacheRoomList.forEach(function (item, index) {
+            CacheData.cacheRoomKeyList[index] = item;
             item.topic().then(function (str) {
                 attr.push("\n");
                 attr.push("群" + index);
                 attr.push(":" + str);
-                if (index === cacheRoomList.length - 1) {
-                    cacheRoomReplayString = attr.join("");
-                    console.log("cacheRoomReplayString==" + cacheRoomReplayString);
+                if (index === CacheData.cacheRoomList.length - 1) {
+                    CacheData.cacheRoomReplayString = attr.join("");
+                    console.log("cacheRoomReplayString==" + CacheData.cacheRoomReplayString);
                 }
             });
         });
     });
-    fs.readFile("julive-data.json", 'utf-8', (err, data) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        const content = JSON.parse(data);
-        cacheWikiWakeUpKey = content.name;
-        let attr = [];
-        cacheWikiList = content.wikiList;
-        const lastIndex = cacheWikiList.length - 1;
-        cacheWikiList.forEach(function (item, index) {
-            attr.push("\n");
-            attr.push("问题" + index + ".");
-            attr.push(item.problem);
-            if (index === lastIndex) {
-                cacheWikiReplayString = attr.join("");
-            }
-        })
-    });
-    fs.readFile("weather-subcribe.json", "utf-8", (err, data) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        cacheWeatherJsonData = JSON.parse(data);
-        console.log("cacheWeatherJsonData===" + JSON.stringify(cacheWeatherJsonData));
-        cacheWeatherJsonData.list.forEach(item => {
-            cacheWeatherCity[item.name] = item.city;
-            cacheWeatherTime[item.name] = item.time;
-            cacheWeatherIsSend[item.name] = item.isSend;
-        });
-        console.log("cacheWeatherCity===" + JSON.stringify(cacheWeatherCity));
-        console.log("cacheWeatherTime===" + JSON.stringify(cacheWeatherTime));
-        console.log("cacheWeatherIsSend===" + JSON.stringify(cacheWeatherIsSend));
-    });
-    fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        cacheJuliveWorkData = JSON.parse(data);
-    });
-    cacheFriendList = await bot.Contact.findAll();
-
-    fs.readFile("mention-data.json", "utf-8", (err, data) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        cacheMentionContactData = JSON.parse(data);
-    });
-    fs.readFile("room-manager-data.json", "utf-8", (err, data) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        cacheRoomManagerData = JSON.parse(data)
-    })
-}
-
-function updateRoomManagerDataJson() {
-    fs.writeFile("room-manager-data.json", JSON.stringify(cacheRoomManagerData, null, 2), (err) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("JSON saved to " + "room-manager-data.json")
-        }
-    })
-}
-
-function updateWeatherJson() {
-    fs.writeFile("weather-subcribe.json", JSON.stringify(cacheWeatherJsonData, null, 2), (err) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("JSON saved to " + "weather-subcribe.json")
-        }
-    })
-}
-
-function updateJuliveWorkDataJson() {
-    fs.writeFile("julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("JSON saved to " + "julive-work-data.json")
-        }
-    })
-}
-
-function updateMentionData() {
-    fs.writeFile("mention-data.json", JSON.stringify(cacheMentionContactData, null, 2), (err) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("JSON saved to " + "mention-data.json")
-        }
-    })
+    CacheData.cacheFriendList = await bot.Contact.findAll();
+    await CacheData.initCache();
 }
 
 
@@ -280,7 +139,7 @@ async function onMessage(msg) {
     console.log(`消息内容: ${messageContent}`);
 
     if (msg.self()) {
-        return;
+        return
     }
 
     const from = msg.from();
@@ -288,167 +147,70 @@ async function onMessage(msg) {
     const name = from.name();
 
     if (name === '微信团队') {
-        return;
+        return
     }
 
     if (messageContent.includes("开启了朋友验证")) {
         console.log("不是好友了已经");
-        return;
+        return
     }
 
     if (messageContent === "[Send an emoji, view it on mobile]") {
         // await msg.say("");
-        return;
+        return
     }
 
     if (messageContent.includes("合伙吗") || messageContent.includes("你的主人是") || messageContent.includes("你主人是") || messageContent.includes("你爸爸是") || messageContent.includes("你老爸是") || messageContent.includes("你爸是") || messageContent.includes("你的爸爸是")) {
         await msg.say("想联系我的主人？请长按扫描下方二维码，添加好友哦");
         const filebox = FileBox.fromFile('image_cache/xiaozhang.jpeg');
         msg.say(filebox);
-        return;
-    }
-
-    if (messageContent == "历史上的今天" || messageContent == "历史今天") {
-        api.getTodaysHistory(async function (res) {
-            if (res.pic) {
-                const filebox = FileBox.fromUrl(res.pic);
-                await msg.say(filebox);
-            }
-            await msg.say(res.title);
-            await msg.say(res.des);
-        });
-        return
-    }
-
-    if (messageContent.indexOf("查列车") == 0) {
-        const realContent = messageContent.replace("查列车", "");
-        api.getTrainTimeList(realContent, (isSuccess, data) => {
-            if (isSuccess) {
-                const array = [];
-                data.forEach(item => {
-                    if (item.TrainStation[0].includes("车次")) {
-                        array.push("始发站：" + item.TrainStation[0] + "\n");
-                        array.push("出发时间：" + item.StartTime[0] + "\n")
-                    } else {
-                        array.push("    停靠站：" + item.TrainStation[0] + "\n");
-                        array.push("    停靠时间：" + item.ArriveTime[0] + "\n");
-                        if (item.StartTime[0].constructor == String)
-                            array.push("    出发时间：" + item.StartTime[0] + "\n");
-                    }
-                });
-                msg.say(array.join(""))
-            } else {
-                msg.say(data)
-            }
-        });
         return
     }
 
     if ((messageContent.includes("美女") || messageContent.includes("小黄") && messageContent.includes("图")) || messageContent.indexOf("开车") == 0) {
-        const num = messageContent.replace(/[^0-9]/ig, "");
-        if (num > 10) {
-            await msg.say("你咋不上天呢，贪心鬼，勉强给你1张look look")
-        }
-        if (num && num <= 10) {
-            for (let i = 0; i < num; i++) {
-                api.getGanHuoImage(async url => {
-                    const fileBox = FileBox.fromUrl(url);
-                    await msg.say(fileBox)
-                });
-            }
-        } else {
-            api.getGanHuoImage(async url => {
-                const fileBox = FileBox.fromUrl(url);
-                await msg.say(fileBox)
-            });
-        }
+        await Driver.driver(msg);
+        return
+    }
+
+    if (messageContent == "历史上的今天" || messageContent == "历史今天") {
+        await History.get(msg);
+        return
+    }
+
+    if (messageContent.indexOf("查列车") == 0) {
+        await Train.get(msg);
         return
     }
 
     if (messageContent.includes("订阅天气") || messageContent.includes("天气订阅")) {
-        cacheWeatherSendRequest[name] = true;
-        msg.say("请问您要订阅哪个城市的天气？");
-        setTimeout(function () {
-            cacheWeatherSendRequest[name] = false;
-        }, 1000 * 60 * 3);
+        Weather.openWeather(msg);
         return;
     }
 
-    if (cacheWeatherSendRequest[name]) {
-        if (messageContent.includes("点")) {
-            if (cacheWeatherCity[name]) {
-                const array = messageContent.split('点');
-                const time = array[0];
-                if (Data.isTimeExsit(time)) {
-                    cacheWeatherTime[name] = time;
-                    msg.say("已为您设置好天气订阅");
-                    cacheWeatherSendRequest[name] = false;
-                    if (cacheWeatherJsonData.names.indexOf(name) == -1) {
-                        cacheWeatherJsonData.names.push(name);
-                        cacheWeatherJsonData.list.push({
-                            name: name,
-                            city: cacheWeatherCity[name],
-                            time: cacheWeatherTime[name],
-                            isSend: true
-                        });
-                    } else {
-                        cacheWeatherJsonData.list.forEach((item, index) => {
-                            if (item.name == name) {
-                                cacheWeatherJsonData.list[index].city = cacheWeatherCity[name];
-                                cacheWeatherJsonData.list[index].time = cacheWeatherTime[name];
-                                cacheWeatherJsonData.list[index].isSend = true;
-                            }
-                        });
-                        console.log(name + "已存在")
-                    }
-                    cacheWeatherIsSend[name] = true;
-                    updateWeatherJson();
-                } else {
-                    msg.say("抱歉您输入有误，请输入：8点或者9点");
-                }
-            } else {
-                msg.say("还不知道您要哪个城市的天气呢？");
-            }
-        } else {
-            cacheWeatherCity[name] = messageContent;
-            if (Data.isCityExsit(cacheWeatherCity[name])) {
-                msg.say("您希望每天的几点推送" + cacheWeatherCity[name] + "的天气呢");
-            } else {
-                msg.say("抱歉未查到该城市，请重新输入");
-            }
-        }
+    if (CacheData.cacheWeatherSendRequest[name]) {
+        Weather.setWeather(msg);
         return;
     }
 
-    if (cacheWeatherJsonData.names)
-        if (cacheWeatherJsonData.names.indexOf(name) != -1) {
-            if (commData.cancelSubscribeWeatherKeys.indexOf(messageContent) != -1) {
-                cacheWeatherJsonData.list.forEach((item, index) => {
-                    if (item.name == name) {
-                        cacheWeatherJsonData.list[index].isSend = false;
-                    }
-                });
-                cacheWeatherIsSend[name] = false;
-                updateWeatherJson();
-                msg.say("恭喜您已取消订阅");
-                return;
-            }
-        }
+    if(messageContent.includes("取消天气订阅")){
+        Weather.cancelWeather(msg);
+        return
+    }
 
-    if (messageContent === cacheWikiWakeUpKey) {
-        cachePersonSendRequest[name] = true;
+    if (messageContent === CacheData.cacheWikiWakeUpKey) {
+        CacheData.cachePersonSendRequest[name] = true;
         msg.say(name + "已为您开启WIKI问答");
         setTimeout(function () {
-            cachePersonSendRequest[name] = false;
+            CacheData.cachePersonSendRequest[name] = false;
             msg.say(name + "已自动关闭WIKI问答");
         }, 1000 * 60 * 3);
-        msg.say("已知问题如下：" + cacheWikiReplayString);
+        msg.say("已知问题如下：" + CacheData.cacheWikiReplayString);
         msg.say("请回复对应编号获取对应答案，如：1");
         return;
     }
 
-    if (cachePersonSendRequest[name]) {
-        const problem = cacheWikiList[messageContent];
+    if (CacheData.cachePersonSendRequest[name]) {
+        const problem = CacheData.cacheWikiList[messageContent];
         if (problem) {
             msg.say(problem.desc);
             const attachment = problem.attachment;
@@ -471,19 +233,19 @@ async function onMessage(msg) {
     }
 
     if (messageContent.includes("我要群发") || messageContent.includes("我想群发")) {
-        cacheGroupSendRequest[name] = true;
+        CacheData.cacheGroupSendRequest[name] = true;
         msg.say(name + "已为您开启群发功能");
         setTimeout(function () {
-            cacheGroupSendRequest[name] = false;
+            CacheData.cacheGroupSendRequest[name] = false;
             msg.say(name + "体验时间到了亲，已关闭群发功能");
         }, 1000 * 60 * 3);
-        msg.say("小哆所在群组如下：" + cacheRoomReplayString);
+        msg.say("小哆所在群组如下：" + CacheData.cacheRoomReplayString);
         const filebox = FileBox.fromFile('image_cache/rootSendRules.jpeg');
         msg.say(filebox);
         return;
     }
 
-    if (cacheGroupSendRequest[name]) {
+    if (CacheData.cacheGroupSendRequest[name]) {
         console.log("群发消息开始");
         if (messageContent.includes("发群消息+")) {
             cacheRoomList.forEach(function (item) {
@@ -502,7 +264,7 @@ async function onMessage(msg) {
         if (messageContent.includes("发群")) {
             const arry = messageContent.split("+");
             const roomKey = arry[0].replace("发群", "");
-            const room = cacheRoomKeyList[roomKey];
+            const room = CacheData.cacheRoomKeyList[roomKey];
             if (room) {
                 room.has(msg.from()).then(bool => {
                     if (bool) {
@@ -526,7 +288,7 @@ async function onMessage(msg) {
 
     if (msg.type() !== Message.Type.Text) {
         if (room) {
-            if (!isAutoReplyRoom[room.id]) {
+            if (!CacheData.isAutoReplyRoom[room.id]) {
                 return;
             }
         }
@@ -539,9 +301,9 @@ async function onMessage(msg) {
                 //     console.log('Save file to: ' + name);
                 //     file.toFile("image/" + name, true);
                 // }
-                const length = cacheImageName.length - 1;
+                const length = CacheData.cacheImageName.length - 1;
                 const randImage = util.randUnique(0, length, length);
-                const imageName = cacheImageName[randImage[util.rd(0, length)]];
+                const imageName = CacheData.cacheImageName[randImage[util.rd(0, length)]];
                 const filebox = FileBox.fromFile('image_cache/image/' + imageName);
                 if (filebox)
                     await msg.say(filebox);
@@ -580,14 +342,14 @@ async function onMessage(msg) {
         }
 
         if (messageContent.includes("开启") && messageContent.includes("提醒") && messageContent.includes("功能")) {
-            cacheMentionContactData.mention[from.name()] = true;
-            updateMentionData();
+            CacheData.cacheMentionContactData.mention[from.name()] = true;
+            CacheData.updateMentionData();
             msg.say("小哆已为您开启提醒功能，需要有人@您，我就会将消息转发给您。");
             return;
         }
         if (messageContent.includes("关闭") && messageContent.includes("提醒") && messageContent.includes("功能")) {
-            cacheMentionContactData.mention[from.name()] = false;
-            updateMentionData();
+            CacheData.cacheMentionContactData.mention[from.name()] = false;
+            CacheData.updateMentionData();
             msg.say("小哆已为您关闭提醒功能");
             return;
         }
@@ -597,13 +359,13 @@ async function onMessage(msg) {
         if (arrayContact) {
             console.log("start mention" + JSON.stringify(arrayContact));
             arrayContact.forEach(item => {
-                if (cacheMentionContactData.mention)
-                    if (cacheMentionContactData.mention[item.name()]) {
+                if (CacheData.cacheMentionContactData.mention)
+                    if (CacheData.cacheMentionContactData.mention[item.name()]) {
                         console.log("start mention" + item.name());
-                        cacheMentionAutoReply[item.name()] = true;
+                        CacheData.cacheMentionAutoReply[item.name()] = true;
                         setTimeout(function () {
                             console.log("stop mention" + item.name());
-                            cacheMentionAutoReply[item.name()] = false;
+                            CacheData.cacheMentionAutoReply[item.name()] = false;
                         }, 1000 * 60 * 3);
                     }
             })
@@ -612,13 +374,13 @@ async function onMessage(msg) {
         if (msg.type() == Message.Type.Image || msg.type() == Message.Type.Audio) {
             fileBox = await msg.toFileBox()
         }
-        cacheFriendList.forEach(friend => {
+        CacheData.cacheFriendList.forEach(friend => {
             // console.log("forEach mention" + friend.name());
             // console.log("forEach mention" + cacheMentionContactData.mention[friend.name] + " " + cacheMentionAutoReply[friend.name()]);
             const friendName = friend.name();
             if (friendName != null || friendName != "") {
-                if (cacheMentionContactData.mention)
-                    if (cacheMentionContactData.mention[friendName] && cacheMentionAutoReply[friendName]) {
+                if (CacheData.cacheMentionContactData.mention)
+                    if (CacheData.cacheMentionContactData.mention[friendName] && CacheData.cacheMentionAutoReply[friendName]) {
                         console.log("msg.type() mention" + msg.type());
                         if (msg.type() == Message.Type.Text) {
                             friend.say(name + "说：\n" + messageContent)
@@ -631,15 +393,15 @@ async function onMessage(msg) {
         });
 
         if ((messageContent.includes("替我") || messageContent.includes("帮我")) && (messageContent.includes("回复") || messageContent.includes("回答"))) {
-            reply(cacheLastMessageContent[room.id]);
+            reply(CacheData.cacheLastMessageContent[room.id]);
             return
         } else {
             if (msg.type() == Message.Type.Text)
-                cacheLastMessageContent[room.id] = msg;
+                CacheData.cacheLastMessageContent[room.id] = msg;
         }
 
         if (messageContent.indexOf("统计日用品") == 0) {
-            cacheJuliveWorkDataRequest[room.id] = true;
+            CacheData.cacheJuliveWorkDataRequest[room.id] = true;
             await msg.say("已开启统计功能，目前只能统计如下品类，\n如需增加品类，请回复'addTag+自定义品类名称'\n如'addTag火腿肠'即可");
             const str = cacheJuliveWorkData.keyList.join("\n");
             await msg.say(str);
@@ -647,7 +409,7 @@ async function onMessage(msg) {
             return
         }
 
-        if (cacheJuliveWorkDataRequest[room.id]) {
+        if (CacheData.cacheJuliveWorkDataRequest[room.id]) {
             if (messageContent.indexOf("addTag") == 0) {
                 const newTag = messageContent.replace("addTag", "");
                 if (cacheJuliveWorkData.keyList.indexOf(newTag) == -1) {
@@ -693,16 +455,16 @@ async function onMessage(msg) {
                 let newData = {
                     "name": name
                 };
-                if (JSON.stringify(cacheJuliveWorkData.valueList).indexOf(name) != -1) {
-                    cacheJuliveWorkData.valueList.forEach((item, index) => {
+                if (JSON.stringify(CacheData.cacheJuliveWorkData.valueList).indexOf(name) != -1) {
+                    CacheData.cacheJuliveWorkData.valueList.forEach((item, index) => {
                         if (item.name == name) {
-                            newData = cacheJuliveWorkData.valueList[index];
+                            newData = CacheData.cacheJuliveWorkData.valueList[index];
                         }
                     });
                 }
                 let num = 0;
                 let isUpdate = false;
-                cacheJuliveWorkData.keyList.forEach(item => {
+                CacheData.cacheJuliveWorkData.keyList.forEach(item => {
                     if (realContent.includes(item)) {
                         const arry = realContent.split(item);
                         if (arry.length > 1) {
@@ -716,46 +478,46 @@ async function onMessage(msg) {
                     msg.say("抱歉输入有误、无法更新");
                     return
                 }
-                if (JSON.stringify(cacheJuliveWorkData.valueList).indexOf(name) == -1) {
-                    cacheJuliveWorkData.valueList.push(newData)
+                if (JSON.stringify(CacheData.cacheJuliveWorkData.valueList).indexOf(name) == -1) {
+                    CacheData.cacheJuliveWorkData.valueList.push(newData)
                 } else {
-                    cacheJuliveWorkData.valueList.forEach((item, index) => {
+                    CacheData.cacheJuliveWorkData.valueList.forEach((item, index) => {
                         if (item.name == name) {
-                            cacheJuliveWorkData.valueList[index] = newData;
+                            CacheData.cacheJuliveWorkData.valueList[index] = newData;
                         }
                     });
                 }
-                updateJuliveWorkDataJson();
+                CacheData.updateJuliveWorkDataJson();
                 msg.say("已成功添加，\n看结果请回复:'查看'");
                 return
             }
             if (messageContent == "关闭") {
-                cacheJuliveWorkDataRequest[room.id] = false;
+                CacheData.cacheJuliveWorkDataRequest[room.id] = false;
                 msg.say("已关闭统计");
                 return
             }
         }
 
         if (messageContent.includes("不要你了") || messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚") || messageContent.includes("滚吧")) {
-            isAutoReplyRoom[room.id] = false;
+            CacheData.isAutoReplyRoom[room.id] = false;
             await reply(msg);
             return;
         }
 
-        if (isAutoReplyRoom[room.id]) {
+        if (CacheData.isAutoReplyRoom[room.id]) {
             console.log("开启自动回复三分钟");
             await reply(msg);
             return;
         }
         if (messageContent.includes("小哆")) {
-            isAutoReplyRoom[room.id] = true;
+            CacheData.isAutoReplyRoom[room.id] = true;
             setTimeout(function () {
-                if (isAutoReplyRoom[room.id]) {
+                if (CacheData.isAutoReplyRoom[room.id]) {
                     const index = util.randUnique(0, commData.outReplyList.length, 1)[0];
                     room.say(commData.outReplyList[index]);
                     console.log("关闭自动回复");
                 }
-                isAutoReplyRoom[room.id] = false;
+                CacheData.isAutoReplyRoom[room.id] = false;
             }, 1000 * 60 * 3);
             await reply(msg)
         }
@@ -763,32 +525,32 @@ async function onMessage(msg) {
     } else {
 
         if (messageContent == "添加群管") {
-            cacheRoomManagerRequest[from.id] = true;
-            await msg.say("小哆所在群组如下：" + cacheRoomReplayString);
+            CacheData.cacheRoomManagerRequest[from.id] = true;
+            await msg.say("小哆所在群组如下：" + CacheData.cacheRoomReplayString);
             await msg.say("请问您要添加哪个群的管理？请回复群对应编号即可，如：群1");
             return;
         }
 
-        if (cacheRoomManagerRequest[from.id]) {
-            if (cacheRoomManagerAddRequest[from.id]) {
-                cacheRoomManagerData.roomList[cacheRoomManagerAddRequest[from.id]].managers[messageContent] = true;
-                updateRoomManagerDataJson();
+        if (CacheData.cacheRoomManagerRequest[from.id]) {
+            if (CacheData.cacheRoomManagerAddRequest[from.id]) {
+                CacheData.cacheRoomManagerData.roomList[CacheData.cacheRoomManagerAddRequest[from.id]].managers[messageContent] = true;
+                CacheData.updateRoomManagerDataJson();
                 await msg.say("已成功添加" + messageContent + "为管理员哦");
-                cacheRoomManagerAddRequest[from.id] = undefined;
-                cacheRoomManagerRequest[from.id] = undefined;
-                cacheRoomManagerRoomRequest[from.id] = undefined;
+                CacheData.cacheRoomManagerAddRequest[from.id] = undefined;
+                CacheData.cacheRoomManagerRequest[from.id] = undefined;
+                CacheData.cacheRoomManagerRoomRequest[from.id] = undefined;
                 return
             }
 
-            if (cacheRoomManagerRoomRequest[from.id]) {
+            if (CacheData.cacheRoomManagerRoomRequest[from.id]) {
                 const roomTopicList = cacheRoomManagerData.roomTopicList;
                 const roomList = cacheRoomManagerData.roomList;
                 Object.keys(roomTopicList).forEach(async key => {
-                    if (cacheRoomManagerRoomRequest[from.id] == roomTopicList[key]) {
+                    if (CacheData.cacheRoomManagerRoomRequest[from.id] == roomTopicList[key]) {
                         const manager = roomList[key];
                         if (manager) {
                             if (manager.password == messageContent) {
-                                cacheRoomManagerAddRequest[from.id] = key;
+                                CacheData.cacheRoomManagerAddRequest[from.id] = key;
                                 await msg.say("请您拷贝添加群管理员的昵称，然后告诉我，注意：拷贝他本人的群昵称哦");
                             } else {
                                 await msg.say("密码输入错误，请重新输入");
@@ -802,10 +564,10 @@ async function onMessage(msg) {
             }
             if (messageContent.indexOf("群") == 0) {
                 const realRoom = messageContent.replace("群", "");
-                const room = cacheRoomKeyList[realRoom];
+                const room = CacheData.cacheRoomKeyList[realRoom];
                 if (room) {
                     const topic = await room.topic();
-                    cacheRoomManagerRoomRequest[from.id] = topic;
+                    CacheData.cacheRoomManagerRoomRequest[from.id] = topic;
                     await msg.say("请输入群【" + topic + "】的管理密码，如：密码1234");
                 } else {
                     await msg.say("抱歉没找到您说的群，请回复群对应编号即可，如：群1");
@@ -895,12 +657,12 @@ async function onRoomJoin(room, inviteeList, inviter) {
     );
     console.log('机器人入群 id:', room.id);
     const topic = await room.topic();
-    const roomTopicList = cacheRoomManagerData.roomTopicList;
+    const roomTopicList = CacheData.cacheRoomManagerData.roomTopicList;
     if (!JSON.stringify(roomTopicList).includes(topic)) {
         await room.say("Ai小哆欢迎您入群哦，么么哒", inviteeList[0]);
         return;
     }
-    const roomList = cacheRoomManagerData.roomList;
+    const roomList = CacheData.cacheRoomManagerData.roomList;
     Object.keys(roomTopicList).forEach(async key => {
         if (topic == roomTopicList[key]) {
             const manager = roomList[key];
@@ -919,11 +681,11 @@ async function onRoomJoin(room, inviteeList, inviter) {
 }
 
 async function onRoomTopicUpdate(room, topic, oldTopic, changer) {
-    const roomTopicList = cacheRoomManagerData.roomTopicList;
+    const roomTopicList = CacheData.cacheRoomManagerData.roomTopicList;
     Object.keys(roomTopicList).forEach(async (key, index) => {
         if (oldTopic == roomTopicList[key]) {
             roomTopicList[index] = topic;
-            updateRoomManagerDataJson();
+            CacheData.updateRoomManagerDataJson();
             await room.say(`"${changer.name()}"将群名"${oldTopic}" 修改为 "${topic}"`)
         }
     });
