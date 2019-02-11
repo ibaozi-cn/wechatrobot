@@ -21,6 +21,7 @@ const {
 //缓存julive日常工作消费品名单
 let cacheJuliveWorkData = {};
 let cacheJuliveWorkDataRequest = {};
+let cacheJuliveWorkDataRequestName = {};
 
 
 const welcome = `
@@ -487,7 +488,21 @@ async function onMessage(msg) {
                 }
                 return
             }
+
+            if (cacheJuliveWorkDataRequestName[name]) {
+                cacheJuliveWorkData.nameList[name] = messageContent;
+                msg.say(messageContent + "欢迎使用新增功能，添加您的日用品");
+                cacheJuliveWorkDataRequestName[name] = false;
+                return
+            }
+
             if (messageContent.indexOf("新增") == 0) {
+                const realName = cacheJuliveWorkData.nameList[name];
+                if (!realName) {
+                    cacheJuliveWorkDataRequestName[name] = true;
+                    msg.say("请问您的真实姓名是？");
+                    return
+                }
                 const realContent = messageContent.replace("新增", "");
                 let isUpdate = false;
                 let updateTag = "";
@@ -510,20 +525,20 @@ async function onMessage(msg) {
                 }
                 if (Object.keys(cacheJuliveWorkData.roomList).includes(roomName)) {
                     const roomList = cacheJuliveWorkData.roomList[roomName];
-                    let item = roomList[name];
+                    let item = roomList[realName];
                     if (item) {
                         item[updateTag] = updateValue
                     } else {
                         item = {};
                         item[updateTag] = updateValue;
                     }
-                    roomList[name] = item;
+                    roomList[realName] = item;
                     cacheJuliveWorkData.roomList[roomName] = roomList;
                 } else {
                     const item = {};
                     const roomItem = {};
                     item[updateTag] = updateValue;
-                    roomItem[name] = item;
+                    roomItem[realName] = item;
                     cacheJuliveWorkData.roomList[roomName] = roomItem;
                 }
                 updateJuliveWorkDataJson();
