@@ -125,8 +125,8 @@ async function onLogin(user) {
     });
     CacheData.cacheFriendList = await bot.Contact.findAll();
     await CacheData.initCache();
-    fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
-    // fs.readFile("./../../julive-work-data.json", "utf-8", (err, data) => {
+    // fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
+        fs.readFile("./../../julive-work-data.json", "utf-8", (err, data) => {
         if (err) {
             console.log(err);
             return;
@@ -137,8 +137,8 @@ async function onLogin(user) {
 }
 
 function updateJuliveWorkDataJson() {
-    fs.writeFile("julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
-    // fs.writeFile("./../../julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
+    // fs.writeFile("julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
+        fs.writeFile("./../../julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
         if (err) {
             console.log(err);
         } else {
@@ -508,8 +508,8 @@ async function onMessage(msg) {
                     msg.say("抱歉输入有误、无法更新");
                     return
                 }
-                const roomList = cacheJuliveWorkData.roomList[roomName];
-                if (roomList) {
+                if (Object.keys(cacheJuliveWorkData.roomList).includes(roomName)) {
+                    const roomList = cacheJuliveWorkData.roomList[roomName];
                     let item = roomList[name];
                     if (item) {
                         item[updateTag] = updateValue
