@@ -125,8 +125,8 @@ async function onLogin(user) {
     });
     CacheData.cacheFriendList = await bot.Contact.findAll();
     await CacheData.initCache();
-    // fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
-        fs.readFile("./../../julive-work-data.json", "utf-8", (err, data) => {
+    fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
+        // fs.readFile("./../../julive-work-data.json", "utf-8", (err, data) => {
         if (err) {
             console.log(err);
             return;
@@ -137,8 +137,8 @@ async function onLogin(user) {
 }
 
 function updateJuliveWorkDataJson() {
-    // fs.writeFile("julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
-        fs.writeFile("./../../julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
+    fs.writeFile("julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
+        // fs.writeFile("./../../julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
         if (err) {
             console.log(err);
         } else {
