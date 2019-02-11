@@ -454,9 +454,9 @@ async function onMessage(msg) {
             if (messageContent == "查看") {
                 const roomList = cacheJuliveWorkData.roomList[roomName];
                 const arry = [];
-                const keys = [];
                 if (roomList) {
                     Object.keys(roomList).forEach(key => {
+                        const keys = [];
                         keys.push(key + ":");
                         const item = roomList[key];
                         Object.keys(item).forEach(value => {
