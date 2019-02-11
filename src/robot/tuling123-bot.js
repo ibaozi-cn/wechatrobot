@@ -5,6 +5,7 @@ const Train = require("./search-train");
 const CacheData = require('./cache-data');
 const util = require('./util');
 const qrTerm = require("qrcode-terminal");
+const fs = require('fs');
 
 const Tuling123 = require("./tuling123");
 
@@ -16,6 +17,10 @@ const {
     Friendship,
     FileBox
 } = require('wechaty');
+
+//缓存julive日常工作消费品名单
+let cacheJuliveWorkData = {};
+let cacheJuliveWorkDataRequest = {};
 
 
 const welcome = `
@@ -120,6 +125,26 @@ async function onLogin(user) {
     });
     CacheData.cacheFriendList = await bot.Contact.findAll();
     await CacheData.initCache();
+    fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
+    // fs.readFile("./../../julive-work-data.json", "utf-8", (err, data) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        cacheJuliveWorkData = JSON.parse(data);
+        console.log(JSON.stringify(cacheJuliveWorkData.keyList));
+    });
+}
+
+function updateJuliveWorkDataJson() {
+    fs.writeFile("julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
+    // fs.writeFile("./../../julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("JSON saved to " + "julive-work-data.json")
+        }
+    })
 }
 
 
@@ -401,30 +426,32 @@ async function onMessage(msg) {
         }
 
         if (messageContent.indexOf("统计日用品") == 0) {
-            CacheData.cacheJuliveWorkDataRequest[room.id] = true;
+            cacheJuliveWorkDataRequest[room.id] = true;
             await msg.say("已开启统计功能，目前只能统计如下品类，\n如需增加品类，请回复'addTag+自定义品类名称'\n如'addTag火腿肠'即可");
-            console.log("----" + JSON.stringify(CacheData.cacheJuliveWorkData));
-            const str = CacheData.cacheJuliveWorkData.keyList.join("\n");
+            console.log("----" + JSON.stringify(cacheJuliveWorkData));
+            const str = cacheJuliveWorkData.keyList.join("\n");
             console.log(str);
             await msg.say(str);
             await msg.say("请回复对应品类名新增，\n如'新增笔记本1卫生纸2笔1'\n或者'新增笔记本1笔1'\n或者'新增卫生纸2'");
             return
         }
 
-        if (CacheData.cacheJuliveWorkDataRequest[room.id]) {
+        if (cacheJuliveWorkDataRequest[room.id]) {
+            const roomName = await room.topic();
+
             if (messageContent.indexOf("addTag") == 0) {
                 const newTag = messageContent.replace("addTag", "");
-                if (CacheData.cacheJuliveWorkData.keyList.indexOf(newTag) == -1) {
+                if (cacheJuliveWorkData.keyList.indexOf(newTag) == -1) {
                     cacheJuliveWorkData.keyList.push(newTag);
                     await msg.say("已添加");
-                    await msg.say("目前品类：\n" + CacheData.cacheJuliveWorkData.keyList.join("\n"))
+                    await msg.say("目前品类：\n" + cacheJuliveWorkData.keyList.join("\n"))
                 } else {
                     await msg.say("抱歉，添加失败，已经存在");
                 }
                 return
             }
             if (messageContent == "查看") {
-                const roomList = CacheData.cacheJuliveWorkData.roomList[room.id];
+                const roomList = cacheJuliveWorkData.roomList[roomName];
                 const arry = [];
                 const keys = [];
                 if (roomList) {
@@ -442,20 +469,22 @@ async function onMessage(msg) {
             }
             if (messageContent == "统计") {
                 const arry = [];
-                const roomList = CacheData.cacheJuliveWorkData.roomList[room.id];
-                CacheData.cacheJuliveWorkData.keyList.forEach(item => {
-                    let num = 0;
-                    Object.keys(roomList).forEach(key => {
-                        const item = roomList[key];
-                        Object.keys(item).forEach(value => {
-                            if (item[value]) {
-                                num += parseInt(data[item])
-                            }
-                        })
+                const roomList = cacheJuliveWorkData.roomList[roomName];
+                if (roomList) {
+                    cacheJuliveWorkData.keyList.forEach(item => {
+                        let num = 0;
+                        Object.keys(roomList).forEach(key => {
+                            const data = roomList[key];
+                            Object.keys(data).forEach(value => {
+                                if (data[value] && value == item) {
+                                    num += parseInt(data[item])
+                                }
+                            })
+                        });
+                        arry.push(item + " " + num)
                     });
-                    arry.push(item + " " + num)
-                });
-                await msg.say(arry.join("\n"));
+                    await msg.say(arry.join("\n"));
+                }
                 return
             }
             if (messageContent.indexOf("新增") == 0) {
@@ -464,7 +493,7 @@ async function onMessage(msg) {
                 let updateTag = "";
                 let updateValue = "";
                 let num = 0;
-                CacheData.cacheJuliveWorkData.keyList.forEach(item => {
+                cacheJuliveWorkData.keyList.forEach(item => {
                     if (realContent.includes(item)) {
                         const arry = realContent.split(item);
                         if (arry.length > 1) {
@@ -479,7 +508,7 @@ async function onMessage(msg) {
                     msg.say("抱歉输入有误、无法更新");
                     return
                 }
-                const roomList = CacheData.cacheJuliveWorkData.roomList[room.id];
+                const roomList = cacheJuliveWorkData.roomList[roomName];
                 if (roomList) {
                     let item = roomList[name];
                     if (item) {
@@ -489,23 +518,47 @@ async function onMessage(msg) {
                         item[updateTag] = updateValue;
                     }
                     roomList[name] = item;
+                    cacheJuliveWorkData.roomList[roomName] = roomList;
                 } else {
                     const item = {};
                     const roomItem = {};
                     item[updateTag] = updateValue;
                     roomItem[name] = item;
-                    roomList[room.id] = roomItem;
+                    cacheJuliveWorkData.roomList[roomName] = roomItem;
                 }
-                CacheData.cacheJuliveWorkData.roomList = roomList;
-                CacheData.updateJuliveWorkDataJson();
+                updateJuliveWorkDataJson();
                 msg.say("已成功添加，\n看结果请回复:'查看'");
                 return
             }
             if (messageContent == "关闭") {
-                CacheData.cacheJuliveWorkDataRequest[room.id] = false;
+                cacheJuliveWorkDataRequest[room.id] = false;
                 msg.say("已关闭统计");
                 return
             }
+
+            if (messageContent == "统计群") {
+                Object.keys(cacheJuliveWorkData.roomList).forEach(room => {
+                    const arry = [];
+                    const roomList = cacheJuliveWorkData.roomList[room];
+                    if (roomList) {
+                        cacheJuliveWorkData.keyList.forEach(item => {
+                            let num = 0;
+                            Object.keys(roomList).forEach(key => {
+                                const data = roomList[key];
+                                Object.keys(data).forEach(value => {
+                                    if (data[value] && value == item) {
+                                        num += parseInt(data[item])
+                                    }
+                                })
+                            });
+                            arry.push(item + " " + num)
+                        });
+                        msg.say(room + "群:\n" + arry.join("\n"));
+                    }
+                });
+                return
+            }
+
         }
 
         if (messageContent.includes("不要你了") || messageContent.includes("退下") || messageContent.includes("你走") || messageContent.includes("你滚") || messageContent.includes("滚吧")) {

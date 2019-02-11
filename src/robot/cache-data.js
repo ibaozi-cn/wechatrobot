@@ -29,10 +29,6 @@ let cacheWeatherJsonData = {};
 //缓存好友列表
 let cacheFriendList = [];
 
-//缓存julive日常工作消费品名单
-let cacheJuliveWorkData = {};
-let cacheJuliveWorkDataRequest = {};
-
 //缓存最近一条消息内容
 let cacheLastMessageContent = {};
 
@@ -81,16 +77,6 @@ async function initCache() {
             cacheWeatherIsSend[item.name] = item.isSend;
         });
     });
-    fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
-    // fs.readFile("./../../julive-work-data.json", "utf-8", (err, data) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        cacheJuliveWorkData = JSON.parse(data);
-        console.log(JSON.stringify(cacheJuliveWorkData.keyList));
-
-    });
 
     fs.readFile("mention-data.json", "utf-8", (err, data) => {
         if (err) {
@@ -128,15 +114,7 @@ function updateWeatherJson() {
     })
 }
 
-function updateJuliveWorkDataJson() {
-    fs.writeFile("julive-work-data.json", JSON.stringify(cacheJuliveWorkData, null, 2), (err) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("JSON saved to " + "julive-work-data.json")
-        }
-    })
-}
+
 
 function updateMentionData() {
     fs.writeFile("mention-data.json", JSON.stringify(cacheMentionContactData, null, 2), (err) => {
@@ -169,14 +147,11 @@ module.exports = {
     cacheWeatherIsSend,
     cacheWeatherJsonData,
     cacheFriendList,
-    cacheJuliveWorkData,
-    cacheJuliveWorkDataRequest,
     cacheLastMessageContent,
     cacheMentionContactData,
     cacheMentionAutoReply,
     updateRoomManagerDataJson,
     updateWeatherJson,
-    updateJuliveWorkDataJson,
     updateMentionData,
     initCache
 };
