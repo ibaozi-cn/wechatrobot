@@ -1,7 +1,8 @@
 const qrTerm = require("qrcode-terminal");
+const PuppetIoscat = require("wechaty-puppet-ioscat").PuppetIoscat;
 
 const Tuling123 = require("./tuling123");
-const path = require('path');
+
 const {
     config,
     log,
@@ -75,8 +76,12 @@ const msgGroup = "【居理员工group群规】\n" +
     "线上管理者请拉新进的员工：）\n" +
     "已在一群的非管理者可不用在二群，内容都一样，不用占新人名额：）";
 
-
-const bot = new Wechaty();
+const puppet = new PuppetIoscat({
+    token: "wxid_tdax1huk5hgs12",
+});
+const bot = new Wechaty({
+    puppet
+});
 
 bot.on('scan', onScan);
 bot.on('login', onLogin);
@@ -110,8 +115,9 @@ async function onMessage(msg) {
 
     console.log(`Message: ${msg}`);
 
-    let text = msg.text();
-    // console.log("msg text " + text);
+    // let text = msg.text();
+    console.log("msg text " + JSON.stringify(msg));
+
     const room = msg.room();
 
     if (text.indexOf("TM@") == 0) {
@@ -121,143 +127,143 @@ async function onMessage(msg) {
         await room.del(member);
         await room.say("小哆已经试着踢" + realName + "了。请查看")
     }
-
-    if (text == "Two") {
-        await room.del(msg.from())
-    }
-
-    if (msg.self()) {
-        return;
-    }
-
-    if (msg.from().name() === '微信团队') {
-        return;
-    }
-
-    if (text.includes("开启了朋友验证")) {
-        console.log("不是好友了已经");
-        return;
-    }
-
-    if (text === "[Send an emoji, view it on mobile]") {
-        msg.say("您发的表情目前没办法转发，十分抱歉。");
-        return;
-    }
-
-    if (msg.from().name() === '微信团队') {
-        return;
-    }
-
-    if (room) {
-
-        if (text === "发群规") {
-            room.say(msgGroup)
-        }
-
-
-        return;
-    }
-
-    if (msg.type() !== Message.Type.Text) {
-        // await msg.say("目前只支持文本信息哦，很快就支持语音聊天了呢，敬请期待吧。");
-        const room1 = await bot.Room.find("居理测试机器人群1");
-        switch (msg.type()) {
-            case Message.Type.Image:
-                // console.log("msg json"+JSON.stringify(msg));
-                // const url = await msg.toUrlLink();
-                // room1.say(url);
-                const fileName = msg.payload.filename;
-                if (fileName && fileName.endsWith("gif")) {
-                    const file = await msg.toFileBox();
-                    console.log("file json=======" + JSON.stringify(file));
-                    room1.say(file);
-                }
-                if (fileName && fileName.endsWith("jpg")) {
-                    const file = await msg.toFileBox();
-                    // const name = file.name;
-                    // console.log('Save file to: ' + name);
-                    // file.toFile(name);
-                    // room1.say(file);
-                    // const r = filePath => path.resolve(__dirname, filePath);
-                    // const filepath = r('./9124625869023057319.jpg');
-                    // const filefox = FileBox.fromFile(filepath,"9124625869023057319.jpg");
-                    room1.say(file);
-                }
-                break;
-            case Message.Type.Emoticon:
-                console.log("msg json" + JSON.stringify(msg));
-
-
-                break;
-
-        }
-
-
-        return;
-    } else {
-        console.log("msg text json" + JSON.stringify(msg));
-    }
-    if (text.startsWith("发段子")) {
-        const duanzi = text.substring(3);
-        const room2 = await bot.Room.find("居理测试机器人群2");
-        const room1 = await bot.Room.find("居理测试机器人群1");
-        room1.say(duanzi);
-        room2.say(duanzi);
-        return
-    }
-    if (text.startsWith("发群1段子")) {
-        const duanzi = text.substring(5);
-        const room = await bot.Room.find("居理测试机器人群1");
-        room.say(duanzi);
-        return
-    }
-    if (text.startsWith("发群2段子")) {
-        const duanzi = text.substring(5);
-        const room = await bot.Room.find("居理测试机器人群2");
-        room.say(duanzi);
-        return
-    }
-    if (text === "发群2规1") {
-        const room = await bot.Room.find("居理测试机器人群2");
-        console.log("msg text " + JSON.stringify(room));
-        room.say(msgGroup1);
-        return
-    }
-    if (text === "发群1规2") {
-        const room = await bot.Room.find("居理测试机器人群1");
-        console.log("msg text " + JSON.stringify(room));
-        room.say(msgGroup2);
-        return
-    }
-
-    if (text === "发群2规2") {
-        const room = await bot.Room.find("居理测试机器人群2");
-        console.log("msg text " + JSON.stringify(room));
-        room.say(msgGroup2);
-        return
-    }
-    if (text === "发群1规1") {
-        const room = await bot.Room.find("居理测试机器人群1");
-        console.log("msg text " + JSON.stringify(room));
-        room.say(msgGroup1);
-        return
-    }
-    try {
-        const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
-        await msg.say(reply);
-        if (url) {
-            await msg.say(url);
-        }
-        if (listNews) {
-            let news = msg;
-            listNews.forEach(async function (item, index) {
-                if (index > 3) return;
-                await news.say(item.article + "\n" + item.detailurl);
-            })
-        }
-    } catch (e) {
-        console.error('Bot', 'on message tuling.ask() exception: %s', e && e.message || e)
-    }
+    //
+    // if (text == "Two") {
+    //     await room.del(msg.from())
+    // }
+    //
+    // if (msg.self()) {
+    //     return;
+    // }
+    //
+    // if (msg.from().name() === '微信团队') {
+    //     return;
+    // }
+    //
+    // if (text.includes("开启了朋友验证")) {
+    //     console.log("不是好友了已经");
+    //     return;
+    // }
+    //
+    // if (text === "[Send an emoji, view it on mobile]") {
+    //     msg.say("您发的表情目前没办法转发，十分抱歉。");
+    //     return;
+    // }
+    //
+    // if (msg.from().name() === '微信团队') {
+    //     return;
+    // }
+    //
+    // if (room) {
+    //
+    //     if (text === "发群规") {
+    //         room.say(msgGroup)
+    //     }
+    //
+    //
+    //     return;
+    // }
+    //
+    // if (msg.type() !== Message.Type.Text) {
+    //     // await msg.say("目前只支持文本信息哦，很快就支持语音聊天了呢，敬请期待吧。");
+    //     const room1 = await bot.Room.find("居理测试机器人群1");
+    //     switch (msg.type()) {
+    //         case Message.Type.Image:
+    //             // console.log("msg json"+JSON.stringify(msg));
+    //             // const url = await msg.toUrlLink();
+    //             // room1.say(url);
+    //             const fileName = msg.payload.filename;
+    //             if (fileName && fileName.endsWith("gif")) {
+    //                 const file = await msg.toFileBox();
+    //                 console.log("file json=======" + JSON.stringify(file));
+    //                 room1.say(file);
+    //             }
+    //             if (fileName && fileName.endsWith("jpg")) {
+    //                 const file = await msg.toFileBox();
+    //                 // const name = file.name;
+    //                 // console.log('Save file to: ' + name);
+    //                 // file.toFile(name);
+    //                 // room1.say(file);
+    //                 // const r = filePath => path.resolve(__dirname, filePath);
+    //                 // const filepath = r('./9124625869023057319.jpg');
+    //                 // const filefox = FileBox.fromFile(filepath,"9124625869023057319.jpg");
+    //                 room1.say(file);
+    //             }
+    //             break;
+    //         case Message.Type.Emoticon:
+    //             console.log("msg json" + JSON.stringify(msg));
+    //
+    //
+    //             break;
+    //
+    //     }
+    //
+    //
+    //     return;
+    // } else {
+    //     console.log("msg text json" + JSON.stringify(msg));
+    // }
+    // if (text.startsWith("发段子")) {
+    //     const duanzi = text.substring(3);
+    //     const room2 = await bot.Room.find("居理测试机器人群2");
+    //     const room1 = await bot.Room.find("居理测试机器人群1");
+    //     room1.say(duanzi);
+    //     room2.say(duanzi);
+    //     return
+    // }
+    // if (text.startsWith("发群1段子")) {
+    //     const duanzi = text.substring(5);
+    //     const room = await bot.Room.find("居理测试机器人群1");
+    //     room.say(duanzi);
+    //     return
+    // }
+    // if (text.startsWith("发群2段子")) {
+    //     const duanzi = text.substring(5);
+    //     const room = await bot.Room.find("居理测试机器人群2");
+    //     room.say(duanzi);
+    //     return
+    // }
+    // if (text === "发群2规1") {
+    //     const room = await bot.Room.find("居理测试机器人群2");
+    //     console.log("msg text " + JSON.stringify(room));
+    //     room.say(msgGroup1);
+    //     return
+    // }
+    // if (text === "发群1规2") {
+    //     const room = await bot.Room.find("居理测试机器人群1");
+    //     console.log("msg text " + JSON.stringify(room));
+    //     room.say(msgGroup2);
+    //     return
+    // }
+    //
+    // if (text === "发群2规2") {
+    //     const room = await bot.Room.find("居理测试机器人群2");
+    //     console.log("msg text " + JSON.stringify(room));
+    //     room.say(msgGroup2);
+    //     return
+    // }
+    // if (text === "发群1规1") {
+    //     const room = await bot.Room.find("居理测试机器人群1");
+    //     console.log("msg text " + JSON.stringify(room));
+    //     room.say(msgGroup1);
+    //     return
+    // }
+    // try {
+    //     const {text: reply, url: url, list: listNews} = await tuling.ask(msg.text(), {userid: msg.from()});
+    //     await msg.say(reply);
+    //     if (url) {
+    //         await msg.say(url);
+    //     }
+    //     if (listNews) {
+    //         let news = msg;
+    //         listNews.forEach(async function (item, index) {
+    //             if (index > 3) return;
+    //             await news.say(item.article + "\n" + item.detailurl);
+    //         })
+    //     }
+    // } catch (e) {
+    //     console.error('Bot', 'on message tuling.ask() exception: %s', e && e.message || e)
+    // }
 
 }
 

@@ -81,12 +81,14 @@ async function initCache() {
             cacheWeatherIsSend[item.name] = item.isSend;
         });
     });
-    fs.readFile("julive-work-data.json", "utf-8", (err, data) => {
+    fs.readFile("./../../julive-work-data.json", "utf-8", (err, data) => {
         if (err) {
             console.log(err);
             return;
         }
         cacheJuliveWorkData = JSON.parse(data);
+        console.log(JSON.stringify(cacheJuliveWorkData.keyList));
+
     });
 
     fs.readFile("mention-data.json", "utf-8", (err, data) => {

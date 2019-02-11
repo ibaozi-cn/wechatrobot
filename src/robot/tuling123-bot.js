@@ -192,7 +192,7 @@ async function onMessage(msg) {
         return;
     }
 
-    if(messageContent.includes("取消天气订阅")){
+    if (messageContent.includes("取消天气订阅")) {
         Weather.cancelWeather(msg);
         return
     }
@@ -403,7 +403,9 @@ async function onMessage(msg) {
         if (messageContent.indexOf("统计日用品") == 0) {
             CacheData.cacheJuliveWorkDataRequest[room.id] = true;
             await msg.say("已开启统计功能，目前只能统计如下品类，\n如需增加品类，请回复'addTag+自定义品类名称'\n如'addTag火腿肠'即可");
-            const str = cacheJuliveWorkData.keyList.join("\n");
+            console.log("----" + JSON.stringify(CacheData.cacheJuliveWorkData));
+            const str = CacheData.cacheJuliveWorkData.keyList.join("\n");
+            console.log(str);
             await msg.say(str);
             await msg.say("请回复对应品类名新增，\n如'新增笔记本1卫生纸2笔1'\n或者'新增笔记本1笔1'\n或者'新增卫生纸2'");
             return
@@ -412,38 +414,44 @@ async function onMessage(msg) {
         if (CacheData.cacheJuliveWorkDataRequest[room.id]) {
             if (messageContent.indexOf("addTag") == 0) {
                 const newTag = messageContent.replace("addTag", "");
-                if (cacheJuliveWorkData.keyList.indexOf(newTag) == -1) {
+                if (CacheData.cacheJuliveWorkData.keyList.indexOf(newTag) == -1) {
                     cacheJuliveWorkData.keyList.push(newTag);
                     await msg.say("已添加");
-                    await msg.say("目前品类：\n" + cacheJuliveWorkData.keyList.join("\n"))
+                    await msg.say("目前品类：\n" + CacheData.cacheJuliveWorkData.keyList.join("\n"))
                 } else {
                     await msg.say("抱歉，添加失败，已经存在");
                 }
                 return
             }
             if (messageContent == "查看") {
+                const roomList = CacheData.cacheJuliveWorkData.roomList[room.id];
                 const arry = [];
-                cacheJuliveWorkData.valueList.forEach(item => {
-                    const keys = [];
-                    Object.keys(item).forEach(key => {
-                        if (key == "name") {
-                            keys.push(item[key] + ":")
-                        } else {
-                            keys.push("     " + key + " " + item[key])
-                        }
+                const keys = [];
+                if (roomList) {
+                    Object.keys(roomList).forEach(key => {
+                        keys.push(key + ":");
+                        const item = roomList[key];
+                        Object.keys(item).forEach(value => {
+                            keys.push("     " + value + " " + item[value])
+                        });
+                        arry.push(keys.join("\n"))
                     });
-                    arry.push(keys.join("\n"))
-                });
-                await msg.say(arry.join("\n"));
+                    await msg.say(arry.join("\n"));
+                }
                 return
             }
             if (messageContent == "统计") {
                 const arry = [];
-                cacheJuliveWorkData.keyList.forEach(item => {
+                const roomList = CacheData.cacheJuliveWorkData.roomList[room.id];
+                CacheData.cacheJuliveWorkData.keyList.forEach(item => {
                     let num = 0;
-                    cacheJuliveWorkData.valueList.forEach(data => {
-                        if (data[item])
-                            num += parseInt(data[item])
+                    Object.keys(roomList).forEach(key => {
+                        const item = roomList[key];
+                        Object.keys(item).forEach(value => {
+                            if (item[value]) {
+                                num += parseInt(data[item])
+                            }
+                        })
                     });
                     arry.push(item + " " + num)
                 });
@@ -452,25 +460,18 @@ async function onMessage(msg) {
             }
             if (messageContent.indexOf("新增") == 0) {
                 const realContent = messageContent.replace("新增", "");
-                let newData = {
-                    "name": name
-                };
-                if (JSON.stringify(CacheData.cacheJuliveWorkData.valueList).indexOf(name) != -1) {
-                    CacheData.cacheJuliveWorkData.valueList.forEach((item, index) => {
-                        if (item.name == name) {
-                            newData = CacheData.cacheJuliveWorkData.valueList[index];
-                        }
-                    });
-                }
-                let num = 0;
                 let isUpdate = false;
+                let updateTag = "";
+                let updateValue = "";
+                let num = 0;
                 CacheData.cacheJuliveWorkData.keyList.forEach(item => {
                     if (realContent.includes(item)) {
                         const arry = realContent.split(item);
                         if (arry.length > 1) {
                             num = arry[1].substring(0, 1);
                         }
-                        newData[item] = num;
+                        updateTag = item;
+                        updateValue = num;
                         isUpdate = true;
                     }
                 });
@@ -478,15 +479,24 @@ async function onMessage(msg) {
                     msg.say("抱歉输入有误、无法更新");
                     return
                 }
-                if (JSON.stringify(CacheData.cacheJuliveWorkData.valueList).indexOf(name) == -1) {
-                    CacheData.cacheJuliveWorkData.valueList.push(newData)
+                const roomList = CacheData.cacheJuliveWorkData.roomList[room.id];
+                if (roomList) {
+                    let item = roomList[name];
+                    if (item) {
+                        item[updateTag] = updateValue
+                    } else {
+                        item = {};
+                        item[updateTag] = updateValue;
+                    }
+                    roomList[name] = item;
                 } else {
-                    CacheData.cacheJuliveWorkData.valueList.forEach((item, index) => {
-                        if (item.name == name) {
-                            CacheData.cacheJuliveWorkData.valueList[index] = newData;
-                        }
-                    });
+                    const item = {};
+                    const roomItem = {};
+                    item[updateTag] = updateValue;
+                    roomItem[name] = item;
+                    roomList[room.id] = roomItem;
                 }
+                CacheData.cacheJuliveWorkData.roomList = roomList;
                 CacheData.updateJuliveWorkDataJson();
                 msg.say("已成功添加，\n看结果请回复:'查看'");
                 return
