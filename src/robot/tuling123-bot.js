@@ -170,7 +170,6 @@ async function onMessage(msg) {
     const from = msg.from();
     console.log("from === >" + JSON.stringify(from));
     const name = from.name();
-    const alias =await from.alias();
 
     if (name === '微信团队') {
         return
@@ -511,20 +510,20 @@ async function onMessage(msg) {
                 }
                 if (Object.keys(cacheJuliveWorkData.roomList).includes(roomName)) {
                     const roomList = cacheJuliveWorkData.roomList[roomName];
-                    let item = roomList[alias];
+                    let item = roomList[name];
                     if (item) {
                         item[updateTag] = updateValue
                     } else {
                         item = {};
                         item[updateTag] = updateValue;
                     }
-                    roomList[alias] = item;
+                    roomList[name] = item;
                     cacheJuliveWorkData.roomList[roomName] = roomList;
                 } else {
                     const item = {};
                     const roomItem = {};
                     item[updateTag] = updateValue;
-                    roomItem[alias] = item;
+                    roomItem[name] = item;
                     cacheJuliveWorkData.roomList[roomName] = roomItem;
                 }
                 updateJuliveWorkDataJson();
