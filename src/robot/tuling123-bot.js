@@ -170,7 +170,7 @@ async function onMessage(msg) {
     const from = msg.from();
     console.log("from === >" + JSON.stringify(from));
     const name = from.name();
-    const alias = from.name();
+    const alias =await from.alias();
 
     if (name === '微信团队') {
         return
