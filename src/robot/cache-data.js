@@ -8,10 +8,6 @@ let cacheRoomList = [];
 const cacheRoomKeyList = {};
 let cacheRoomReplayString = "";
 const isAutoReplyRoom = {};
-let cacheRoomManagerData = {};
-const cacheRoomManagerRequest = {};
-const cacheRoomManagerRoomRequest = {};
-const cacheRoomManagerAddRequest = {};
 
 //问答系统相关缓存
 let cacheWikiWakeUpKey = "";
@@ -85,23 +81,6 @@ async function initCache() {
         }
         cacheMentionContactData = JSON.parse(data);
     });
-    fs.readFile("room-manager-data.json", "utf-8", (err, data) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        cacheRoomManagerData = JSON.parse(data)
-    })
-}
-
-function updateRoomManagerDataJson() {
-    fs.writeFile("room-manager-data.json", JSON.stringify(cacheRoomManagerData, null, 2), (err) => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log("JSON saved to " + "room-manager-data.json")
-        }
-    })
 }
 
 function updateWeatherJson() {
@@ -133,10 +112,6 @@ module.exports = {
     cacheRoomKeyList,
     cacheRoomReplayString,
     isAutoReplyRoom,
-    cacheRoomManagerData,
-    cacheRoomManagerRequest,
-    cacheRoomManagerRoomRequest,
-    cacheRoomManagerAddRequest,
     cacheWikiWakeUpKey,
     cachePersonSendRequest,
     cacheWikiReplayString,
@@ -150,7 +125,6 @@ module.exports = {
     cacheLastMessageContent,
     cacheMentionContactData,
     cacheMentionAutoReply,
-    updateRoomManagerDataJson,
     updateWeatherJson,
     updateMentionData,
     initCache

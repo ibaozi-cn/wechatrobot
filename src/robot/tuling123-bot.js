@@ -23,6 +23,11 @@ let cacheJuliveWorkData = {};
 let cacheJuliveWorkDataRequest = {};
 let cacheJuliveWorkDataRequestName = {};
 
+//小组相关缓存
+let cacheRoomManagerData = {};
+const cacheRoomManagerRequest = {};
+const cacheRoomManagerRoomRequest = {};
+const cacheRoomManagerAddRequest = {};
 
 const welcome = `
 =============== Powered by Wechaty ===============
@@ -135,6 +140,13 @@ async function onLogin(user) {
         cacheJuliveWorkData = JSON.parse(data);
         console.log(JSON.stringify(cacheJuliveWorkData.keyList));
     });
+    fs.readFile("room-manager-data.json", "utf-8", (err, data) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        cacheRoomManagerData = JSON.parse(data)
+    })
 }
 
 function updateJuliveWorkDataJson() {
@@ -147,7 +159,15 @@ function updateJuliveWorkDataJson() {
         }
     })
 }
-
+function updateRoomManagerDataJson() {
+    fs.writeFile("room-manager-data.json", JSON.stringify(cacheRoomManagerData, null, 2), (err) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("JSON saved to " + "room-manager-data.json")
+        }
+    })
+}
 
 function onLogout(user) {
     console.log(`${user} logout`);
@@ -603,32 +623,32 @@ async function onMessage(msg) {
     } else {
 
         if (messageContent == "添加群管") {
-            CacheData.cacheRoomManagerRequest[from.id] = true;
+            cacheRoomManagerRequest[from.id] = true;
             await msg.say("小哆所在群组如下：" + CacheData.cacheRoomReplayString);
             await msg.say("请问您要添加哪个群的管理？请回复群对应编号即可，如：群1");
             return;
         }
 
-        if (CacheData.cacheRoomManagerRequest[from.id]) {
-            if (CacheData.cacheRoomManagerAddRequest[from.id]) {
-                CacheData.cacheRoomManagerData.roomList[CacheData.cacheRoomManagerAddRequest[from.id]].managers[messageContent] = true;
-                CacheData.updateRoomManagerDataJson();
+        if (cacheRoomManagerRequest[from.id]) {
+            if (cacheRoomManagerAddRequest[from.id]) {
+                cacheRoomManagerData.roomList[cacheRoomManagerAddRequest[from.id]].managers[messageContent] = true;
+                updateRoomManagerDataJson();
                 await msg.say("已成功添加" + messageContent + "为管理员哦");
-                CacheData.cacheRoomManagerAddRequest[from.id] = undefined;
-                CacheData.cacheRoomManagerRequest[from.id] = undefined;
-                CacheData.cacheRoomManagerRoomRequest[from.id] = undefined;
+                cacheRoomManagerAddRequest[from.id] = undefined;
+                cacheRoomManagerRequest[from.id] = undefined;
+                cacheRoomManagerRoomRequest[from.id] = undefined;
                 return
             }
 
-            if (CacheData.cacheRoomManagerRoomRequest[from.id]) {
+            if (cacheRoomManagerRoomRequest[from.id]) {
                 const roomTopicList = cacheRoomManagerData.roomTopicList;
                 const roomList = cacheRoomManagerData.roomList;
                 Object.keys(roomTopicList).forEach(async key => {
-                    if (CacheData.cacheRoomManagerRoomRequest[from.id] == roomTopicList[key]) {
+                    if (cacheRoomManagerRoomRequest[from.id] == roomTopicList[key]) {
                         const manager = roomList[key];
                         if (manager) {
                             if (manager.password == messageContent) {
-                                CacheData.cacheRoomManagerAddRequest[from.id] = key;
+                                cacheRoomManagerAddRequest[from.id] = key;
                                 await msg.say("请您拷贝添加群管理员的昵称，然后告诉我，注意：拷贝他本人的群昵称哦");
                             } else {
                                 await msg.say("密码输入错误，请重新输入");
@@ -642,10 +662,10 @@ async function onMessage(msg) {
             }
             if (messageContent.indexOf("群") == 0) {
                 const realRoom = messageContent.replace("群", "");
-                const room = CacheData.cacheRoomKeyList[realRoom];
+                const room = cacheRoomKeyList[realRoom];
                 if (room) {
                     const topic = await room.topic();
-                    CacheData.cacheRoomManagerRoomRequest[from.id] = topic;
+                    cacheRoomManagerRoomRequest[from.id] = topic;
                     await msg.say("请输入群【" + topic + "】的管理密码，如：密码1234");
                 } else {
                     await msg.say("抱歉没找到您说的群，请回复群对应编号即可，如：群1");
@@ -735,12 +755,12 @@ async function onRoomJoin(room, inviteeList, inviter) {
     );
     console.log('机器人入群 id:', room.id);
     const topic = await room.topic();
-    const roomTopicList = CacheData.cacheRoomManagerData.roomTopicList;
+    const roomTopicList = cacheRoomManagerData.roomTopicList;
     if (!JSON.stringify(roomTopicList).includes(topic)) {
         await room.say("Ai小哆欢迎您入群哦，么么哒", inviteeList[0]);
         return;
     }
-    const roomList = CacheData.cacheRoomManagerData.roomList;
+    const roomList = cacheRoomManagerData.roomList;
     Object.keys(roomTopicList).forEach(async key => {
         if (topic == roomTopicList[key]) {
             const manager = roomList[key];
@@ -759,11 +779,11 @@ async function onRoomJoin(room, inviteeList, inviter) {
 }
 
 async function onRoomTopicUpdate(room, topic, oldTopic, changer) {
-    const roomTopicList = CacheData.cacheRoomManagerData.roomTopicList;
+    const roomTopicList = cacheRoomManagerData.roomTopicList;
     Object.keys(roomTopicList).forEach(async (key, index) => {
         if (oldTopic == roomTopicList[key]) {
             roomTopicList[index] = topic;
-            CacheData.updateRoomManagerDataJson();
+            updateRoomManagerDataJson();
             await room.say(`"${changer.name()}"将群名"${oldTopic}" 修改为 "${topic}"`)
         }
     });
