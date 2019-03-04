@@ -52,7 +52,7 @@ function scheduleMerryChristmas() {
     schedule.scheduleJob('0 0 * * * *', async function () {
         CacheData.cacheFriendList = await bot.Contact.findAll();
         console.log(JSON.stringify(CacheData.cacheFriendList));
-        if (cacheWeatherJsonData.names)
+        if (CacheData.cacheWeatherJsonData.names)
             cacheWeatherJsonData.names.forEach(async item => {
                 if (!CacheData.cacheWeatherIsSend[item]) return;
                 const myDate = new Date();
@@ -73,7 +73,12 @@ function scheduleMerryChristmas() {
                         }
                     });
                 }
-            })
+            });
+        const room = await bot.Room.find("自由麻将群5毛一份");
+        if (room) {
+            await room.say("群规：\n" +
+                "        自觉发房卡")
+        }
     });
 }
 
@@ -376,7 +381,7 @@ async function onMessage(msg) {
                     }
                 }
             });
-            if(topic.includes("诚信拼车顺风车群")){
+            if (topic.includes("诚信拼车顺风车群")) {
                 await room.say("公告：\n" +
                     "1. 本群的成立是为了乘车方便，不准在群里说话不文明胡乱吵骂，不准在群里乱发游戏链接，不准在群里乱发淫秽.色情.诅咒的视频信息，违者踢出本群。\n" +
                     "\n" +
@@ -388,6 +393,10 @@ async function onMessage(msg) {
                     "\n" +
                     "5.  昵称修改：村-镇 + 昵称")
 
+            }
+            if(topic.includes("自由麻将群")){
+                await room.say("群规：\n" +
+                    "        自觉发房卡")
             }
             return
         }
