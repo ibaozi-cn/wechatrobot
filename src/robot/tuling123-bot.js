@@ -159,6 +159,7 @@ function updateJuliveWorkDataJson() {
         }
     })
 }
+
 function updateRoomManagerDataJson() {
     fs.writeFile("room-manager-data.json", JSON.stringify(cacheRoomManagerData, null, 2), (err) => {
         if (err) {
@@ -192,7 +193,7 @@ async function onMessage(msg) {
     console.log("from === >" + JSON.stringify(from));
     const name = from.name();
 
-    if (name === '微信团队') {
+    if (name == '微信团队' || name == "懂得珍惜") {
         return
     }
 
@@ -359,6 +360,25 @@ async function onMessage(msg) {
     }
 
     if (room) {
+
+        if (messageContent == "发群规") {
+            const topic = await room.topic();
+            const roomTopicList = cacheRoomManagerData.roomTopicList;
+            const roomList = cacheRoomManagerData.roomList;
+            Object.keys(roomTopicList).forEach(async key => {
+                if (topic == roomTopicList[key]) {
+                    const manager = roomList[key];
+                    if (manager) {
+                        const announce = manager.announce;
+                        if (announce && announce != "") {
+                            await room.say(announce);
+                        }
+                    }
+                }
+            });
+            return
+        }
+
         if (messageContent.indexOf("TM@") == 0) {
             const realName = messageContent.replace("TM@", "");
             const topic = await room.topic();
